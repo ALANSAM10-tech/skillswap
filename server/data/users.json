@@ -1,0 +1,306 @@
+[
+  {
+    "id": "user-1",
+    "email": "alex@university.edu",
+    "fullName": "Alex Rivera",
+    "major": "Computer Science",
+    "gradYear": "2026",
+    "bio": "Passionate about full-stack web development and cloud engineering. Looking to learn photography and design theory to improve my UI work.",
+    "avatar": "🎨",
+    "teachSkills": [
+      {
+        "name": "React",
+        "level": "Expert"
+      },
+      {
+        "name": "Node.js",
+        "level": "Expert"
+      },
+      {
+        "name": "Python",
+        "level": "Intermediate"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "Photography",
+        "level": "Beginner"
+      },
+      {
+        "name": "Figma",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "alex_dev#1234",
+      "whatsapp": "+1-555-0192",
+      "email": "alex@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.173Z"
+  },
+  {
+    "id": "user-2",
+    "email": "emma@university.edu",
+    "fullName": "Emma Watson",
+    "major": "Design & Media",
+    "gradYear": "2027",
+    "bio": "UI/UX designer. I love creating beautiful, user-centered apps. Looking to learn React to bridge the gap between design and front-end coding.",
+    "avatar": "✨",
+    "teachSkills": [
+      {
+        "name": "Figma",
+        "level": "Expert"
+      },
+      {
+        "name": "Graphic Design",
+        "level": "Expert"
+      },
+      {
+        "name": "UI/UX Design",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "React",
+        "level": "Beginner"
+      },
+      {
+        "name": "Javascript",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "emma_pixels",
+      "whatsapp": "",
+      "email": "emma@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-3",
+    "email": "chloe@university.edu",
+    "fullName": "Chloe Chen",
+    "major": "Finance & Economics",
+    "gradYear": "2027",
+    "bio": "Finance student and amateur photographer. Looking to learn Python and SQL to automate data analysis and build stock dashboards.",
+    "avatar": "📸",
+    "teachSkills": [
+      {
+        "name": "Photography",
+        "level": "Expert"
+      },
+      {
+        "name": "Economics",
+        "level": "Expert"
+      },
+      {
+        "name": "Resume Writing",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "Python",
+        "level": "Beginner"
+      },
+      {
+        "name": "SQL",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "",
+      "whatsapp": "+1-555-0143",
+      "email": "chloe@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-4",
+    "email": "david@university.edu",
+    "fullName": "David Kim",
+    "major": "Mechanical Engineering",
+    "gradYear": "2028",
+    "bio": "Studying engineering. Learning Spanish for my study abroad semester in Madrid next year. Happy to teach math and programming.",
+    "avatar": "⚙️",
+    "teachSkills": [
+      {
+        "name": "Python",
+        "level": "Expert"
+      },
+      {
+        "name": "C++",
+        "level": "Expert"
+      },
+      {
+        "name": "Linear Algebra",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "Spanish",
+        "level": "Beginner"
+      },
+      {
+        "name": "Public Speaking",
+        "level": "Intermediate"
+      }
+    ],
+    "contactInfo": {
+      "discord": "david_k_eng",
+      "whatsapp": "+1-555-0155",
+      "email": "david@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-5",
+    "email": "sofia@university.edu",
+    "fullName": "Sofia Martinez",
+    "major": "Modern Languages",
+    "gradYear": "2026",
+    "bio": "Native Spanish speaker. Love traveling and meeting new people. I want to learn web development basics to publish my bilingual travel blog.",
+    "avatar": "🌍",
+    "teachSkills": [
+      {
+        "name": "Spanish",
+        "level": "Expert"
+      },
+      {
+        "name": "Public Speaking",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "HTML/CSS",
+        "level": "Beginner"
+      },
+      {
+        "name": "Javascript",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "sofia_travels",
+      "whatsapp": "+1-555-0187",
+      "email": "sofia@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-6",
+    "email": "marcus@university.edu",
+    "fullName": "Marcus Johnson",
+    "major": "Film & Television",
+    "gradYear": "2028",
+    "bio": "Video editor and filmmaker. Happy to teach Adobe Premiere, Photoshop, and video production. Looking to learn Spanish and basic coding.",
+    "avatar": "🎬",
+    "teachSkills": [
+      {
+        "name": "Adobe Premiere",
+        "level": "Expert"
+      },
+      {
+        "name": "Video Editing",
+        "level": "Expert"
+      },
+      {
+        "name": "Photoshop",
+        "level": "Intermediate"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "Spanish",
+        "level": "Beginner"
+      },
+      {
+        "name": "Python",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "marcus_cuts",
+      "whatsapp": "",
+      "email": "marcus@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-7",
+    "email": "sarah@university.edu",
+    "fullName": "Sarah Jenkins",
+    "major": "Data Science",
+    "gradYear": "2027",
+    "bio": "Statistics and ML enthusiast. Want to learn UI/UX design to make my dashboard tools look clean, intuitive, and highly professional.",
+    "avatar": "📊",
+    "teachSkills": [
+      {
+        "name": "SQL",
+        "level": "Expert"
+      },
+      {
+        "name": "Statistics",
+        "level": "Expert"
+      },
+      {
+        "name": "Python",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "UI/UX Design",
+        "level": "Beginner"
+      },
+      {
+        "name": "Figma",
+        "level": "Beginner"
+      }
+    ],
+    "contactInfo": {
+      "discord": "sarah_data",
+      "whatsapp": "",
+      "email": "sarah@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  },
+  {
+    "id": "user-8",
+    "email": "ryan@university.edu",
+    "fullName": "Ryan Patel",
+    "major": "Mechanical Engineering",
+    "gradYear": "2026",
+    "bio": "CAD design expert. Looking to practice public speaking and resume writing for upcoming campus job fairs.",
+    "avatar": "🛠️",
+    "teachSkills": [
+      {
+        "name": "3D Modeling",
+        "level": "Expert"
+      },
+      {
+        "name": "Calculus",
+        "level": "Expert"
+      }
+    ],
+    "learnSkills": [
+      {
+        "name": "Public Speaking",
+        "level": "Beginner"
+      },
+      {
+        "name": "Resume Writing",
+        "level": "Intermediate"
+      }
+    ],
+    "contactInfo": {
+      "discord": "ryan_patel_eng",
+      "whatsapp": "+1-555-0101",
+      "email": "ryan@university.edu"
+    },
+    "createdAt": "2026-06-22T13:36:44.174Z"
+  }
+]

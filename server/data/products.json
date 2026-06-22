@@ -1,0 +1,514 @@
+[
+  {
+    "id": "bf-bagel",
+    "name": "Classic Egg & Cheese Bagel",
+    "description": "A toasted New York style bagel topped with a fluffy folded egg, melted sharp cheddar cheese, and a spread of butter.",
+    "category": "Breakfast",
+    "price": 120,
+    "stock": 50,
+    "rating": 4.7,
+    "reviews": 84,
+    "availability": true,
+    "estimatedTime": 8,
+    "calories": 380,
+    "imageUrl": "/uploads/bf-bagel.jpg",
+    "nutrition": {
+      "calories": "380 kcal",
+      "protein": "14g",
+      "carbs": "48g",
+      "fat": "15g",
+      "ingredients": [
+        "Toasted Bagel",
+        "Fluffy Egg",
+        "Sharp Cheddar Cheese",
+        "Butter"
+      ]
+    },
+    "origin": "Canteen Kitchen",
+    "benefits": [
+      "Rich in breakfast protein",
+      "Baked fresh daily"
+    ],
+    "usage": "Serve hot."
+  },
+  {
+    "id": "bf-pancakes",
+    "name": "Fluffy Blueberry Pancakes",
+    "description": "Three thick, fluffy buttermilk pancakes folded with fresh blueberries, served with butter and maple syrup.",
+    "category": "Breakfast",
+    "price": 150,
+    "stock": 45,
+    "rating": 4.6,
+    "reviews": 67,
+    "availability": true,
+    "estimatedTime": 12,
+    "calories": 450,
+    "imageUrl": "/uploads/bf-pancakes.jpg",
+    "nutrition: {": {
+      "calories": "450 kcal",
+      "protein": "8g",
+      "carbs": "72g",
+      "fat": "14g",
+      "ingredients": [
+        "Buttermilk Pancake Batter",
+        "Fresh Blueberries",
+        "Butter",
+        "Maple Syrup"
+      ]
+    },
+    "origin": "Canteen Grill",
+    "benefits": [
+      "Warm and comforting",
+      "Sweet and fruity taste"
+    ],
+    "usage": "Serve warm with maple syrup poured over."
+  },
+  {
+    "id": "bf-avocado",
+    "name": "Avocado Smashed Toast",
+    "description": "Toasted sourdough bread loaded with freshly mashed avocado, feta cheese, cherry tomatoes, and a pinch of chili flakes.",
+    "category": "Breakfast",
+    "price": 180,
+    "stock": 34,
+    "rating": 4.8,
+    "reviews": 112,
+    "availability": true,
+    "estimatedTime": 7,
+    "calories": 290,
+    "imageUrl": "/uploads/bf-avocado.jpg",
+    "nutrition": {
+      "calories": "290 kcal",
+      "protein": "9g",
+      "carbs": "34g",
+      "fat": "16g",
+      "ingredients": [
+        "Artisanal Sourdough Bread",
+        "Fresh Avocado",
+        "Feta Cheese",
+        "Cherry Tomatoes",
+        "Chili Flakes"
+      ]
+    },
+    "origin": "Canteen Kitchen",
+    "benefits": [
+      "High in healthy fats",
+      "Fiber-rich breakfast option"
+    ],
+    "usage": "Consume fresh immediately."
+  },
+  {
+    "id": "lh-burger",
+    "name": "Loaded Double Cheeseburger",
+    "description": "Two juicy smash beef patties, double cheddar cheese, crisp lettuce, fresh tomatoes, and our signature canteen house sauce on a toasted brioche bun.",
+    "category": "Lunch",
+    "price": 220,
+    "stock": 28,
+    "rating": 4.9,
+    "reviews": 245,
+    "availability": true,
+    "estimatedTime": 15,
+    "calories": 680,
+    "imageUrl": "/uploads/lh-burger.jpg",
+    "nutrition": {
+      "calories": "680 kcal",
+      "protein": "38g",
+      "carbs": "42g",
+      "fat": "36g",
+      "ingredients": [
+        "Smash Beef Patties",
+        "Cheddar Cheese",
+        "Romaine Lettuce",
+        "Tomatoes",
+        "Brioche Bun",
+        "Canteen House Sauce"
+      ]
+    },
+    "origin": "Canteen Hot Grill",
+    "benefits": [
+      "Extremely filling",
+      "Packed with high-quality protein"
+    ],
+    "usage": "Enjoy warm with a side of fries."
+  },
+  {
+    "id": "lh-wrap",
+    "name": "Spicy Chicken Tikka Wrap",
+    "description": "Grilled chicken tikka chunks wrapped in a soft tortilla bread with crunchy onions, bell peppers, mint mayonnaise, and tangy spices.",
+    "category": "Lunch",
+    "price": 190,
+    "stock": 40,
+    "rating": 4.8,
+    "reviews": 189,
+    "availability: true,": true,
+    "estimatedTime": 10,
+    "calories": 420,
+    "imageUrl": "/uploads/lh-wrap.jpg",
+    "nutrition": {
+      "calories": "420 kcal",
+      "protein": "24g",
+      "carbs": "38g",
+      "fat": "18g",
+      "ingredients": [
+        "Grilled Chicken Tikka",
+        "Tortilla Bread",
+        "Onions",
+        "Bell Peppers",
+        "Mint Mayonnaise",
+        "Spices"
+      ]
+    },
+    "origin": "Canteen Tandoor Section",
+    "benefits": [
+      "Rich in aromatic spices",
+      "Convenient grab-and-go meal"
+    ],
+    "usage": "Consume warm."
+  },
+  {
+    "id": "lh-salad",
+    "name": "Garden Fresh Caesar Salad",
+    "description: ": "Crisp romaine lettuce tossed in creamy Caesar dressing, topped with garlic croutons, shredded parmesan, and tender grilled chicken strips.",
+    "category": "Lunch",
+    "price": 160,
+    "stock": 25,
+    "rating": 4.5,
+    "reviews": 58,
+    "availability": true,
+    "estimatedTime": 8,
+    "calories": 320,
+    "imageUrl": "/uploads/lh-salad.jpg",
+    "nutrition": {
+      "calories": "320 kcal",
+      "protein": "18g",
+      "carbs": "12g",
+      "fat": "22g",
+      "ingredients": [
+        "Romaine Lettuce",
+        "Grilled Chicken Strips",
+        "Caesar Dressing",
+        "Croutons",
+        "Parmesan Cheese"
+      ]
+    },
+    "origin": "Canteen Salad Station",
+    "benefits": [
+      "Light and refreshing",
+      "Low carb lunch option"
+    ],
+    "usage": "Mix dressing well before eating."
+  },
+  {
+    "id": "sk-nachos",
+    "name": "Crispy Loaded Nachos",
+    "description": "Tortilla chips loaded with warm melted cheese sauce, fresh pico de gallo, spicy jalapeños, black beans, and a dollop of sour cream.",
+    "category": "Snacks",
+    "price": 130,
+    "stock": 50,
+    "rating": 4.6,
+    "reviews": 93,
+    "availability": true,
+    "estimatedTime": 6,
+    "calories": 410,
+    "imageUrl": "/uploads/sk-nachos.jpg",
+    "nutrition": {
+      "calories": "410 kcal",
+      "protein": "10g",
+      "carbs": "46g",
+      "fat": "20g",
+      "ingredients": [
+        "Corn Tortilla Chips",
+        "Cheddar Cheese Sauce",
+        "Tomato Pico de Gallo",
+        "Jalapenos",
+        "Sour Cream"
+      ]
+    },
+    "origin": "Canteen Snack Counter",
+    "benefits": [
+      "Perfect for sharing",
+      "Bold and spicy flavors"
+    ],
+    "usage": "Eat immediately while chips are crispy."
+  },
+  {
+    "id": "sk-fries",
+    "name": "Spicy Peri-Peri French Fries",
+    "description": "Golden brown crinkle-cut fries dusted with a fiery peri-peri spice mix, served piping hot with garlic aioli dip.",
+    "category": "Snacks",
+    "price": 90,
+    "stock": 99,
+    "rating": 4.7,
+    "reviews": 312,
+    "availability": true,
+    "estimatedTime": 5,
+    "calories": 310,
+    "imageUrl": "/uploads/sk-fries.jpg",
+    "nutrition": {
+      "calories": "310 kcal",
+      "protein": "4g",
+      "carbs": "38g",
+      "fat": "14g",
+      "ingredients": [
+        "Crinkle-Cut Potatoes",
+        "Peri-Peri Seasoning",
+        "Vegetable Oil",
+        "Garlic Aioli"
+      ]
+    },
+    "origin": "Canteen Deep Fryer",
+    "benefits": [
+      "Voted best campus snack",
+      "Freshly fried on order"
+    ],
+    "usage": "Dip in garlic aioli and consume hot."
+  },
+  {
+    "id": "sk-mozzarella",
+    "name": "Cheesy Mozzarella Sticks",
+    "description": "Six crispy golden breaded mozzarella sticks stretching with melted cheese, served with a tangy marinara dipping sauce.",
+    "category": "Snacks",
+    "price": 110,
+    "stock": 0,
+    "rating": 4.4,
+    "reviews": 76,
+    "availability": false,
+    "estimatedTime": 7,
+    "calories": 340,
+    "imageUrl": "/uploads/sk-mozzarella.jpg",
+    "nutrition": {
+      "calories": "340 kcal",
+      "protein": "12g",
+      "carbs": "28g",
+      "fat": "18g",
+      "ingredients": [
+        "Breaded Mozzarella Sticks",
+        "Marinara Sauce"
+      ]
+    },
+    "origin": "Canteen Deep Fryer",
+    "benefits": [
+      "Ultimate cheese stretch",
+      "Warm gooey center"
+    ],
+    "usage": "Serve with marinara sauce."
+  },
+  {
+    "id": "bv-macchiato",
+    "name": "Iced Caramel Macchiato",
+    "description": "Rich espresso combined with milk and vanilla syrup, poured over ice, and topped with a decadent caramel drizzle.",
+    "category": "Beverages",
+    "price": 140,
+    "stock": 60,
+    "rating": 4.8,
+    "reviews": 142,
+    "availability": true,
+    "estimatedTime": 4,
+    "calories": 250,
+    "imageUrl": "/uploads/bv-macchiato.jpg",
+    "nutrition": {
+      "calories": "250 kcal",
+      "protein": "6g",
+      "carbs": "35g",
+      "fat": "8g",
+      "ingredients": [
+        "Espresso",
+        "Milk",
+        "Vanilla Syrup",
+        "Caramel Drizzle",
+        "Ice"
+      ]
+    },
+    "origin": "Canteen Cafe Station",
+    "benefits": [
+      "Sustained afternoon caffeine kick",
+      "Sweet and refreshing"
+    ],
+    "usage": "Stir before drinking."
+  },
+  {
+    "id": "bv-lemonade",
+    "name": "Fresh Squeezed Lemonade",
+    "description": "A refreshing blend of fresh lemon juice, sparkling water, simple syrup, and fresh mint leaves, served cold over crushed ice.",
+    "category": "Beverages",
+    "price": 80,
+    "stock": 70,
+    "rating": 4.9,
+    "reviews": 115,
+    "availability": true,
+    "estimatedTime": 3,
+    "calories": 120,
+    "imageUrl": "/uploads/bv-lemonade.jpg",
+    "nutrition": {
+      "calories": "120 kcal",
+      "protein": "0g",
+      "carbs": "30g",
+      "fat": "0g",
+      "ingredients": [
+        "Fresh Lemon Juice",
+        "Sparkling Water",
+        "Sugar Syrup",
+        "Mint Leaves",
+        "Ice"
+      ]
+    },
+    "origin": "Canteen Cafe Station",
+    "benefits": [
+      "Hydrating and cooling",
+      "100% freshly squeezed juice"
+    ],
+    "usage": "Drink cold."
+  },
+  {
+    "id": "bv-milktea",
+    "name": "Classic Boba Milk Tea",
+    "description": "Brewed black tea blended with sweetened milk and served with chewy, sweet tapioca pearls over ice.",
+    "category": "Beverages",
+    "price": 120,
+    "stock": 50,
+    "rating": 4.7,
+    "reviews": 201,
+    "availability": true,
+    "estimatedTime": 5,
+    "calories": 350,
+    "imageUrl": "/uploads/bv-milktea.jpg",
+    "nutrition": {
+      "calories": "350 kcal",
+      "protein": "4g",
+      "carbs": "52g",
+      "fat": "10g",
+      "ingredients": [
+        "Black Tea",
+        "Milk",
+        "Brown Sugar",
+        "Tapioca Pearls",
+        "Ice"
+      ]
+    },
+    "origin": "Canteen Cafe Station",
+    "benefits": [
+      "Chewy bobas for fun texture",
+      "Rich sweet flavor"
+    ],
+    "usage": "Shake well and drink with a wide straw."
+  },
+  {
+    "id": "ds-brownie",
+    "name": "Warm Fudge Brownie",
+    "description": "A rich, gooey chocolate fudge brownie loaded with chocolate chunks, served warm with a drizzle of hot chocolate syrup.",
+    "category": "Desserts",
+    "price": 100,
+    "stock": 40,
+    "rating": 4.9,
+    "reviews": 164,
+    "availability": true,
+    "estimatedTime": 5,
+    "calories": 390,
+    "imageUrl": "/uploads/ds-brownie.jpg",
+    "nutrition": {
+      "calories": "390 kcal",
+      "protein": "5g",
+      "carbs": "48g",
+      "fat": "18g",
+      "ingredients": [
+        "Chocolate Fudge Brownie Batter",
+        "Chocolate Chunks",
+        "Chocolate Syrup"
+      ]
+    },
+    "origin": "Canteen Pastry Section",
+    "benefits": [
+      "Decadently chocolatey",
+      "Served hot & fresh"
+    ],
+    "usage": "Warm in microwave for 10 seconds before eating."
+  },
+  {
+    "id": "ds-cheesecake",
+    "name": "Strawberry Cheesecake",
+    "description": "A slice of creamy New York style cheesecake on a graham cracker crust, topped with sweet strawberry compote and whipped cream.",
+    "category": "Desserts",
+    "price": 160,
+    "stock": 30,
+    "rating": 4.8,
+    "reviews": 95,
+    "availability": true,
+    "estimatedTime": 3,
+    "calories": 480,
+    "imageUrl": "/uploads/ds-cheesecake.jpg",
+    "nutrition": {
+      "calories": "480 kcal",
+      "protein": "8g",
+      "carbs": "45g",
+      "fat": "28g",
+      "ingredients": [
+        "Cream Cheese",
+        "Graham Cracker Crust",
+        "Strawberry Compote",
+        "Whipped Cream"
+      ]
+    },
+    "origin": "Canteen Pastry Section",
+    "benefits": [
+      "Creamy and smooth",
+      "Perfect balance of sweet and tart"
+    ],
+    "usage": "Serve chilled."
+  },
+  {
+    "id": "canteen-special-tea-831",
+    "name": "Canteen Special Tea",
+    "description": "A warm cup of traditional canteen masala chai.",
+    "category": "Beverages",
+    "price": 25,
+    "stock": 100,
+    "rating": 5,
+    "reviews": 0,
+    "imageUrl": "/uploads/placeholder.jpg",
+    "nutrition": {
+      "calories": "80 kcal",
+      "protein": "N/A",
+      "carbs": "N/A",
+      "fat": "N/A",
+      "ingredients": [
+        "Tea Leaves",
+        "Milk",
+        "Cardamom",
+        "Ginger"
+      ]
+    },
+    "origin": "Canteen Kitchen",
+    "benefits": [
+      "Freshly prepared",
+      "Serve warm"
+    ],
+    "usage": "Consume fresh."
+  },
+  {
+    "id": "linter-test-fries-906",
+    "name": "Linter Test Fries",
+    "description": "A test order created to verify catalog management functions post-linter fixes.",
+    "category": "Snacks",
+    "price": 80,
+    "stock": 50,
+    "rating": 5,
+    "reviews": 0,
+    "imageUrl": "/uploads/placeholder.jpg",
+    "nutrition": {
+      "calories": "250 kcal",
+      "protein": "N/A",
+      "carbs": "N/A",
+      "fat": "N/A",
+      "ingredients": [
+        "Potato",
+        "Salt",
+        "Oil"
+      ]
+    },
+    "origin": "Canteen Kitchen",
+    "benefits": [
+      "Freshly prepared",
+      "Serve warm"
+    ],
+    "usage": "Consume fresh."
+  }
+]

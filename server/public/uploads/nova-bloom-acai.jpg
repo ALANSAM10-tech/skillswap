@@ -1,0 +1,10 @@
+
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+        <rect width="600" height="600" fill="#3b1836" />
+        <circle cx="300" cy="240" r="120" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.1)" stroke-width="2" />
+        <circle cx="300" cy="240" r="90" fill="rgba(255, 255, 255, 0.05)" />
+        <path d="M 230 420 Q 300 480 370 420" fill="none" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" stroke-linecap="round" />
+        <text x="300" y="390" text-anchor="middle" fill="#f1ede4" font-family="'Playfair Display', Georgia, serif" font-size="28" font-weight="bold">Nova Bloom Acai</text>
+        <text x="300" y="490" text-anchor="middle" fill="rgba(241, 237, 228, 0.6)" font-family="'Plus Jakarta Sans', sans-serif" font-size="16" letter-spacing="4">PROJECT ANTIGRAVITY</text>
+      </svg>
+    

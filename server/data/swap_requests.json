@@ -1,0 +1,11 @@
+[
+  {
+    "id": "swap-1436",
+    "status": "ACCEPTED",
+    "message": "Hi Emma Watson! I noticed you teach Figma, Graphic Design which I want to learn. Let's swap skills!",
+    "createdAt": "2026-06-22T14:02:53.234Z",
+    "updatedAt": "2026-06-22T14:06:49.373Z",
+    "senderId": "user-1",
+    "receiverId": "user-2"
+  }
+]
