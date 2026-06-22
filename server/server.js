@@ -595,6 +595,15 @@ app.delete('/api/sessions/:id/book', async (req, res) => {
   }
 });
 
+// Serve static frontend in production
+const DIST_PATH = path.join(__dirname, '../dist');
+if (fs.existsSync(DIST_PATH)) {
+  app.use(express.static(DIST_PATH));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(DIST_PATH, 'index.html'));
+  });
+}
+
 // Start backend server
 app.listen(PORT, () => {
   console.log(`College Skill Swap Backend Server running on port ${PORT}`);
