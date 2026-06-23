@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState } from 'react';
 
 export const AuthContext = createContext();
 
@@ -15,33 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => {
     return localStorage.getItem('skillswap_token') || null;
   });
-  const [loading, setLoading] = useState(() => {
-    const storedUser = localStorage.getItem('skillswap_user');
-    return !storedUser; // only loading if no stored session exists to retrieve
-  });
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('skillswap_user');
-    if (!storedUser) {
-      // Auto-login as Alex Rivera (user-1) on first launch for a frictionless demo experience
-      fetch('/api/users/user-1')
-        .then(res => {
-          if (res.ok) return res.json();
-          throw new Error('Failed to auto-fetch default user');
-        })
-        .then(defaultUser => {
-          setUser(defaultUser);
-          setToken('mock-jwt-user-1');
-          localStorage.setItem('skillswap_user', JSON.stringify(defaultUser));
-          localStorage.setItem('skillswap_token', 'mock-jwt-user-1');
-          setLoading(false);
-        })
-        .catch(err => {
-          console.warn('Auto-login failed (backend might not be running yet):', err.message);
-          setLoading(false);
-        });
-    }
-  }, []);
+  const [loading, setLoading] = useState(false);
 
   const login = async (email) => {
     try {

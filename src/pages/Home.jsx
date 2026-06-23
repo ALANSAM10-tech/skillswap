@@ -257,7 +257,7 @@ export default function Home() {
           className="btn btn-primary"
           style={{ padding: '0.75rem 2rem', borderRadius: '30px' }}
         >
-          {user ? 'Enter Match Hub' : 'Sign In Now'}
+          {user ? 'Enter Match Hub' : 'Sign Up / Sign In'}
         </button>
       </section>
     </motion.div>

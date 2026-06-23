@@ -11,7 +11,7 @@ export default function Auth() {
   const { login, register, user } = useAuth();
   const navigate = useNavigate();
 
-  const [isLoginTab, setIsLoginTab] = useState(true);
+  const [isLoginTab, setIsLoginTab] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
