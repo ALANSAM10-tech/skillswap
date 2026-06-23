@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 deploy.zip
+
+# Local DB Files
+server/data/reviews.json
+server/data/session_bookings.json
+server/data/sessions.json
+

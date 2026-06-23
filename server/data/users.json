@@ -36,7 +36,8 @@
       "whatsapp": "+1-555-0192",
       "email": "alex@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.173Z"
+    "createdAt": "2026-06-22T13:36:44.173Z",
+    "isExpert": true
   },
   {
     "id": "user-2",
@@ -75,7 +76,8 @@
       "whatsapp": "",
       "email": "emma@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": true
   },
   {
     "id": "user-3",
@@ -114,7 +116,8 @@
       "whatsapp": "+1-555-0143",
       "email": "chloe@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": false
   },
   {
     "id": "user-4",
@@ -153,7 +156,8 @@
       "whatsapp": "+1-555-0155",
       "email": "david@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": false
   },
   {
     "id": "user-5",
@@ -188,7 +192,8 @@
       "whatsapp": "+1-555-0187",
       "email": "sofia@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": false
   },
   {
     "id": "user-6",
@@ -227,7 +232,8 @@
       "whatsapp": "",
       "email": "marcus@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": false
   },
   {
     "id": "user-7",
@@ -266,7 +272,8 @@
       "whatsapp": "",
       "email": "sarah@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": true
   },
   {
     "id": "user-8",
@@ -301,6 +308,7 @@
       "whatsapp": "+1-555-0101",
       "email": "ryan@university.edu"
     },
-    "createdAt": "2026-06-22T13:36:44.174Z"
+    "createdAt": "2026-06-22T13:36:44.174Z",
+    "isExpert": false
   }
 ]
