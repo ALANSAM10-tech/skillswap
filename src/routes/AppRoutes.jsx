@@ -7,6 +7,7 @@ import SwapRequests from '../pages/SwapRequests';
 import LearningPaths from '../pages/LearningPaths';
 import Settings from '../pages/Settings';
 import Mentorship from '../pages/Mentorship';
+import Messages from '../pages/Messages';
 
 export default function AppRoutes() {
   return (
@@ -16,6 +17,7 @@ export default function AppRoutes() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/profile/:id" element={<Profile />} />
       <Route path="/connections" element={<SwapRequests />} />
+      <Route path="/messages" element={<Messages />} />
       <Route path="/learning-path" element={<LearningPaths />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/mentorship" element={<Mentorship />} />

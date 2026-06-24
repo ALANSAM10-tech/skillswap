@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import Avatar from '../components/common/Avatar';
 import { 
   ArrowLeft, MessageSquare, Send, Clock, Copy, ShieldCheck, Mail, MessageCircle, 
   Award, Trophy, CheckCircle, RefreshCw, Calendar, Sparkles, Star, User, BookOpen 
@@ -337,7 +338,7 @@ export default function Profile() {
                 boxShadow: 'var(--shadow-md)',
                 marginBottom: '1rem'
               }}>
-                {peer.avatar}
+                <Avatar src={peer.avatar} size="3rem" />
               </div>
 
               <div>

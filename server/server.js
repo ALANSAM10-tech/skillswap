@@ -807,6 +807,32 @@ app.delete('/api/sessions/:id/book', async (req, res) => {
   }
 });
 
+// --- MESSAGING ROUTES ---
+
+app.get('/api/messages/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const messages = await db.getMessagesForUser(userId);
+    res.json({ success: true, messages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch messages', error: error.message });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { senderId, receiverId, content } = req.body;
+    if (!senderId || !receiverId || !content) {
+      return res.status(400).json({ success: false, message: 'Missing required message fields' });
+    }
+    
+    const newMsg = await db.saveMessage({ senderId, receiverId, content });
+    res.status(201).json({ success: true, message: newMsg });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to send message', error: error.message });
+  }
+});
+
 // Serve static frontend in production
 const DIST_PATH = path.join(__dirname, '../dist');
 if (fs.existsSync(DIST_PATH)) {

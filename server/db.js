@@ -14,6 +14,7 @@ const SWAPS_FILE = path.join(DATA_DIR, 'swap_requests.json');
 const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const BOOKINGS_FILE = path.join(DATA_DIR, 'session_bookings.json');
+const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -77,6 +78,9 @@ class Database {
     }
     if (!fs.existsSync(BOOKINGS_FILE)) {
       writeFileAtomic(BOOKINGS_FILE, []);
+    }
+    if (!fs.existsSync(MESSAGES_FILE)) {
+      writeFileAtomic(MESSAGES_FILE, []);
     }
 
     // Seed Firestore asynchronously in the background if connected
@@ -470,6 +474,35 @@ class Database {
     const filtered = bookings.filter(b => !(b.studentId === userId && b.sessionId === sessionId));
     writeFileAtomic(BOOKINGS_FILE, filtered);
     return true;
+  }
+
+  // --- MESSAGES ---
+
+  getAllMessages() {
+    try {
+      const data = fs.readFileSync(MESSAGES_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch {
+      return [];
+    }
+  }
+
+  async getMessagesForUser(userId) {
+    const messages = this.getAllMessages();
+    return messages.filter(m => m.senderId === userId || m.receiverId === userId);
+  }
+
+  async saveMessage(msg) {
+    const messages = this.getAllMessages();
+    const newMessage = {
+      id: 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+      timestamp: new Date().toISOString(),
+      read: false,
+      ...msg
+    };
+    messages.push(newMessage);
+    writeFileAtomic(MESSAGES_FILE, messages);
+    return newMessage;
   }
 }
 

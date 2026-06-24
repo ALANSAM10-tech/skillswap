@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Users, Workflow, MessageSquare, Settings, Menu, X, LogOut, RefreshCw, GraduationCap, Award } from 'lucide-react';
+import { Users, Workflow, MessageSquare, MessageCircle, Settings, Menu, X, LogOut, RefreshCw, GraduationCap, Award } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import ThemeToggle from './ThemeToggle';
+import Avatar from './Avatar';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -122,6 +123,11 @@ export default function Navbar() {
                   )}
                 </NavLink>
 
+                <NavLink to="/messages" className={({ isActive }) => `btn ${isActive ? 'btn-secondary-filled' : 'btn-secondary'}`} style={{ border: 'none', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <MessageCircle size={16} />
+                  Messages
+                </NavLink>
+
                 <NavLink to="/settings" className={({ isActive }) => `btn ${isActive ? 'btn-secondary-filled' : 'btn-secondary'}`} style={{ border: 'none', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Settings size={16} />
                   Settings
@@ -154,7 +160,7 @@ export default function Navbar() {
                 >
                   {allUsers.map((u) => (
                     <option key={u.id} value={u.id} style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-main)' }}>
-                      {u.fullName} ({u.avatar})
+                      {u.fullName} {u.avatar && !u.avatar.startsWith('http') ? `(${u.avatar})` : ''}
                     </option>
                   ))}
                 </select>
@@ -181,7 +187,7 @@ export default function Navbar() {
                     transition: 'var(--transition-fast)'
                   }}
                 >
-                  {user.avatar}
+                  <Avatar src={user.avatar} size="1.2rem" />
                 </NavLink>
                 <button
                   onClick={() => { logout(); navigate('/'); }}
@@ -240,7 +246,7 @@ export default function Navbar() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Logged in as:</span>
                 <span style={{ fontWeight: '700', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>{user.avatar}</span> {user.fullName} ({user.major})
+                  <Avatar src={user.avatar} size="1.2rem" /> {user.fullName} ({user.major})
                 </span>
               </div>
 
@@ -255,7 +261,7 @@ export default function Navbar() {
                 >
                   {allUsers.map((u) => (
                     <option key={u.id} value={u.id}>
-                      {u.fullName} ({u.avatar})
+                      {u.fullName} {u.avatar && !u.avatar.startsWith('http') ? `(${u.avatar})` : ''}
                     </option>
                   ))}
                 </select>

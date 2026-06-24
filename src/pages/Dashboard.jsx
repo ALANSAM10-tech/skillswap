@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { Sparkles, Compass, GraduationCap, Award, HelpCircle } from 'lucide-react';
+import Avatar from '../components/common/Avatar';
 import SearchBar from '../components/common/SearchBar';
 
 export default function Dashboard() {
@@ -149,8 +150,8 @@ export default function Dashboard() {
         gap: '1.5rem'
       }}>
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: '800' }}>
-            Hello, {user.fullName} {user.avatar}
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            Hello, {user.fullName} <Avatar src={user.avatar} size="2rem" />
           </h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
             Major: <strong>{user.major}</strong> • Grad Class: <strong>{user.gradYear}</strong>
@@ -363,7 +364,7 @@ export default function Dashboard() {
                       justifyContent: 'center',
                       border: '2px solid var(--border-color)'
                     }}>
-                      {peer.avatar}
+                      <Avatar src={peer.avatar} size="1.75rem" />
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: '700' }}>{peer.fullName}</h3>
