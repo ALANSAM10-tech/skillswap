@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useState } from 'react';
+import { apiUrl } from '../services/apiConfig';
 
 export const AuthContext = createContext();
 
@@ -20,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
@@ -44,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(apiUrl('/api/auth/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async (googleProfile) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/google', {
+      const res = await fetch(apiUrl('/api/auth/google'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(googleProfile)
@@ -103,7 +104,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updatedData) => {
     if (!user) return { success: false, error: 'No authenticated user' };
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetch(apiUrl(`/api/users/${user.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ export const AuthProvider = ({ children }) => {
   const switchUser = async (userId) => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/users/${userId}`);
+      const res = await fetch(apiUrl(`/api/users/${userId}`));
       if (!res.ok) {
         throw new Error('Failed to fetch profile to switch');
       }

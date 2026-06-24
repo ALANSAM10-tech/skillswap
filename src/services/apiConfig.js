@@ -1,7 +1,7 @@
 /**
  * Central API configuration.
  * - In local dev:  Vite proxy handles /api → localhost:5000
- * - In production: VITE_API_URL (set in Vercel env vars) points to your Render backend
+ * - In production: VITE_API_URL points to the deployed backend
  */
 
 // __API_BASE__ is injected by vite.config.js from VITE_API_URL env var

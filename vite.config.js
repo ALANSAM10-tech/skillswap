@@ -1,3 +1,4 @@
+/* global process */
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -7,6 +8,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    envPrefix: ['VITE_', 'GOOGLE_CLIENT_ID'],
     server: {
       port: 5173,
       proxy: {
@@ -28,7 +30,8 @@ export default defineConfig(({ mode }) => {
       // When deploying to Firebase Hosting, leave VITE_API_URL empty —
       // the hosting rewrite forwards /api/** to the Cloud Function automatically.
       // Only set VITE_API_URL if using a separate backend (Render, etc.)
-      __API_BASE__: JSON.stringify(env.VITE_API_URL || '')
+      __API_BASE__: JSON.stringify(env.VITE_API_URL || ''),
+      __GOOGLE_CLIENT_ID__: JSON.stringify(env.VITE_GOOGLE_CLIENT_ID || env.GOOGLE_CLIENT_ID || '')
     }
   }
 })
