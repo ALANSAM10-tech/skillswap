@@ -520,3 +520,39 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0;
   }
 }
+
+/* Gamified Achievements and Badges Styling */
+.badge-card-glow {
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.3) !important;
+  animation: badge-unlock-pulse 2s infinite ease-in-out;
+  transform: translateY(-2px);
+}
+
+@keyframes badge-unlock-pulse {
+  0%, 100% { border-color: var(--warning); }
+  50% { border-color: rgba(245, 158, 11, 0.4); }
+}
+
+.badge-unlocked-card {
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.badge-unlocked-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  border-color: var(--warning) !important;
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.2) !important;
+}
+
+.history-row {
+  transition: background-color 0.2s ease;
+}
+
+.history-row:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+.profile-nav-active {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 8px var(--primary-glow) !important;
+}

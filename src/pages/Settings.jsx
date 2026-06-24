@@ -25,6 +25,7 @@ export default function Settings() {
   const [bio, setBio] = useState(user?.bio || '');
   const [avatar, setAvatar] = useState(user?.avatar || '🎓');
   const [isExpert, setIsExpert] = useState(user?.isExpert || false);
+  const [availability, setAvailability] = useState(user?.availability || '');
   
   // Contact Info State
   const [discord, setDiscord] = useState(user?.contactInfo?.discord || '');
@@ -58,6 +59,7 @@ export default function Settings() {
       setTeachSkills(user.teachSkills || []);
       setLearnSkills(user.learnSkills || []);
       setIsExpert(user.isExpert || false);
+      setAvailability(user.availability || '');
     });
 
     fetch('/api/skills')
@@ -83,6 +85,7 @@ export default function Settings() {
       teachSkills,
       learnSkills,
       isExpert,
+      availability: availability.trim(),
       contactInfo: {
         discord: discord.trim(),
         whatsapp: whatsapp.trim(),
@@ -377,9 +380,9 @@ export default function Settings() {
 
           <div style={{ borderTop: '1px solid var(--border-color)' }}></div>
 
-          {/* Section 2: Contact Coordinates */}
+          {/* Section 2: Contact Coordinates & Availability */}
           <div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.25rem' }}>2. Contact Details</h3>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: '700', marginBottom: '0.25rem' }}>2. Contact Details & Weekly Availability</h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
               These coordinates will only be visible to peers whose swap requests you have accepted.
             </p>
@@ -406,6 +409,20 @@ export default function Settings() {
                   onChange={(e) => setWhatsapp(e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1rem', marginBottom: 0 }}>
+              <label className="form-label">Weekly Availability</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g. Mon/Wed 2:00 PM - 5:00 PM, Fridays 10:00 AM - 1:00 PM"
+                value={availability}
+                onChange={(e) => setAvailability(e.target.value)}
+              />
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>
+                Specifying your availability helps peers coordinate swap requests and schedules.
+              </span>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { firestoreDb, isFirebaseConnected } from './firebase.js';
 
@@ -313,6 +314,10 @@ class Database {
     this.init();
   }
 
+  hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+  }
+
   init() {
     // Initialize local database files
     if (!fs.existsSync(SKILLS_FILE)) {
@@ -321,17 +326,33 @@ class Database {
     
     // Seed/update users.json
     if (!fs.existsSync(USERS_FILE)) {
-      // Ensure initial users arrays have isExpert flags
+      // Ensure initial users arrays have isExpert and new gamification flags
       INITIAL_USERS.forEach(u => {
-        if (['user-1', 'user-2', 'user-7'].includes(u.id)) {
-          u.isExpert = true;
-        } else {
-          u.isExpert = false;
-        }
+        u.isExpert = ['user-1', 'user-2', 'user-7'].includes(u.id);
+        u.availability = u.id === 'user-1' ? 'Mon/Wed 2:00 PM - 5:00 PM' :
+                         u.id === 'user-2' ? 'Tues/Thurs 1:00 PM - 3:00 PM' :
+                         u.id === 'user-7' ? 'Fridays 10:00 AM - 1:00 PM' : '';
+        u.knowledgeScore = u.id === 'user-1' ? 320 :
+                           u.id === 'user-2' ? 180 :
+                           u.id === 'user-7' ? 520 : 0;
+        u.uploadedNotesCount = u.id === 'user-1' ? 5 :
+                               u.id === 'user-2' ? 2 :
+                               u.id === 'user-7' ? 8 : 0;
+        u.impactMetrics = u.id === 'user-1' ? { studentsHelped: 8, teachingHours: 12.0, successfulSwaps: 6, learningSessionsCompleted: 4 } :
+                          u.id === 'user-2' ? { studentsHelped: 5, teachingHours: 6.5, successfulSwaps: 4, learningSessionsCompleted: 3 } :
+                          u.id === 'user-7' ? { studentsHelped: 15, teachingHours: 22.0, successfulSwaps: 11, learningSessionsCompleted: 8 } :
+                          { studentsHelped: 0, teachingHours: 0, successfulSwaps: 0, learningSessionsCompleted: 0 };
+        u.swapHistory = u.id === 'user-1' ? [
+          { id: "sh-1", partnerName: "Emma Watson", partnerAvatar: "✨", skillsTaught: ["React", "Node.js"], skillsLearned: ["Figma"], date: "2026-06-22", status: "COMPLETED" },
+          { id: "sh-2", partnerName: "Chloe Chen", partnerAvatar: "📸", skillsTaught: ["Python"], skillsLearned: ["Photography"], date: "2026-06-18", status: "COMPLETED" }
+        ] : u.id === 'user-2' ? [
+          { id: "sh-3", partnerName: "Alex Rivera", partnerAvatar: "🎨", skillsTaught: ["Figma"], skillsLearned: ["React"], date: "2026-06-22", status: "COMPLETED" }
+        ] : [];
+        u.passwordHash = this.hashPassword('password123');
       });
       writeFileAtomic(USERS_FILE, INITIAL_USERS);
     } else {
-      // Load and make sure isExpert is set on initial profiles
+      // Load and make sure isExpert is set on initial profiles, plus migrate new fields
       try {
         const users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
         let changed = false;
@@ -347,12 +368,56 @@ class Database {
               changed = true;
             }
           }
+
+          if (u.availability === undefined) {
+            u.availability = u.id === 'user-1' ? 'Mon/Wed 2:00 PM - 5:00 PM' :
+                             u.id === 'user-2' ? 'Tues/Thurs 1:00 PM - 3:00 PM' :
+                             u.id === 'user-7' ? 'Fridays 10:00 AM - 1:00 PM' : '';
+            changed = true;
+          }
+
+          if (u.knowledgeScore === undefined) {
+            u.knowledgeScore = u.id === 'user-1' ? 320 :
+                               u.id === 'user-2' ? 180 :
+                               u.id === 'user-7' ? 520 : 0;
+            changed = true;
+          }
+
+          if (u.uploadedNotesCount === undefined) {
+            u.uploadedNotesCount = u.id === 'user-1' ? 5 :
+                                   u.id === 'user-2' ? 2 :
+                                   u.id === 'user-7' ? 8 : 0;
+            changed = true;
+          }
+
+          if (u.impactMetrics === undefined) {
+            u.impactMetrics = u.id === 'user-1' ? { studentsHelped: 8, teachingHours: 12.0, successfulSwaps: 6, learningSessionsCompleted: 4 } :
+                              u.id === 'user-2' ? { studentsHelped: 5, teachingHours: 6.5, successfulSwaps: 4, learningSessionsCompleted: 3 } :
+                              u.id === 'user-7' ? { studentsHelped: 15, teachingHours: 22.0, successfulSwaps: 11, learningSessionsCompleted: 8 } :
+                              { studentsHelped: 0, teachingHours: 0, successfulSwaps: 0, learningSessionsCompleted: 0 };
+            changed = true;
+          }
+
+          if (u.swapHistory === undefined) {
+            u.swapHistory = u.id === 'user-1' ? [
+              { id: "sh-1", partnerName: "Emma Watson", partnerAvatar: "✨", skillsTaught: ["React", "Node.js"], skillsLearned: ["Figma"], date: "2026-06-22", status: "COMPLETED" },
+              { id: "sh-2", partnerName: "Chloe Chen", partnerAvatar: "📸", skillsTaught: ["Python"], skillsLearned: ["Photography"], date: "2026-06-18", status: "COMPLETED" }
+            ] : u.id === 'user-2' ? [
+              { id: "sh-3", partnerName: "Alex Rivera", partnerAvatar: "🎨", skillsTaught: ["Figma"], skillsLearned: ["React"], date: "2026-06-22", status: "COMPLETED" }
+            ] : [];
+            changed = true;
+          }
+
+          if (u.passwordHash === undefined) {
+            u.passwordHash = this.hashPassword('password123');
+            changed = true;
+          }
         });
         if (changed) {
           writeFileAtomic(USERS_FILE, users);
         }
       } catch (err) {
-        console.error("Error updating users with isExpert flags in init:", err);
+        console.error("Error migrating users in database init:", err);
       }
     }
 

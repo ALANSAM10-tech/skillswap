@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Users, Workflow, MessageSquare, Settings, Menu, X, LogOut, RefreshCw, GraduationCap } from 'lucide-react';
+import { Users, Workflow, MessageSquare, Settings, Menu, X, LogOut, RefreshCw, GraduationCap, Award } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import ThemeToggle from './ThemeToggle';
 
@@ -126,6 +126,11 @@ export default function Navbar() {
                   <Settings size={16} />
                   Settings
                 </NavLink>
+
+                <NavLink to={`/profile/${user.id}`} className={({ isActive }) => `btn ${isActive ? 'btn-secondary-filled' : 'btn-secondary'}`} style={{ border: 'none', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Award size={16} style={{ color: 'var(--primary)' }} />
+                  My Profile
+                </NavLink>
               </div>
 
               {/* Demo Account Swapper */}
@@ -157,7 +162,27 @@ export default function Navbar() {
 
               {/* Active Profile Info */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>{user.avatar}</span>
+                <NavLink 
+                  to={`/profile/${user.id}`} 
+                  title="My Profile Dashboard" 
+                  style={{ 
+                    fontSize: '1.25rem', 
+                    textDecoration: 'none', 
+                    cursor: 'pointer', 
+                    padding: '0.2rem', 
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--bg-tertiary)',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--border-color)',
+                    transition: 'var(--transition-fast)'
+                  }}
+                >
+                  {user.avatar}
+                </NavLink>
                 <button
                   onClick={() => { logout(); navigate('/'); }}
                   className="btn btn-secondary"
@@ -236,6 +261,9 @@ export default function Navbar() {
                 </select>
               </div>
 
+              <NavLink to={`/profile/${user.id}`} className={({ isActive }) => `btn ${isActive ? 'btn-primary' : 'btn-secondary-filled'}`} style={{ justifyContent: 'flex-start' }} onClick={closeMobileMenu}>
+                <Award size={16} /> My Profile
+              </NavLink>
               <NavLink to="/dashboard" className={({ isActive }) => `btn ${isActive ? 'btn-primary' : 'btn-secondary-filled'}`} style={{ justifyContent: 'flex-start' }} onClick={closeMobileMenu}>
                 <Users size={16} /> Match Hub
               </NavLink>
