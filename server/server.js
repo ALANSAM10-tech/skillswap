@@ -4,8 +4,11 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { OAuth2Client } from 'google-auth-library';
 import db from './db.js';
 import { generateLearningPath } from './services/aiService.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -113,22 +116,19 @@ app.post('/api/auth/login', async (req, res) => {
 // Google Sign-In / OAuth
 app.post('/api/auth/google', async (req, res) => {
   try {
-    const { access_token } = req.body;
+    const { credential } = req.body;
 
-    if (!access_token) {
-      return res.status(400).json({ success: false, message: 'Google access token is required.' });
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Google credential is required.' });
     }
 
-    // Fetch user profile from Google using the access token
-    const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${access_token}` }
+    // Verify the ID token using google-auth-library
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
     
-    if (!googleRes.ok) {
-      throw new Error('Failed to fetch user info from Google');
-    }
-    
-    const googleUser = await googleRes.json();
+    const googleUser = ticket.getPayload();
     const { email, name: fullName, picture: avatar } = googleUser;
 
     const user = await db.getUserByEmail(email);

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldAlert, CheckCircle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 
 const AVATARS = ['🎓', '🎨', '✨', '📸', '⚙️', '🌍', '🎬', '📊', '🛠️', '💻', '💡', '✍️'];
 const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
@@ -124,35 +124,40 @@ export default function Auth() {
     }
   };
 
-  // Real Google OAuth Login
-  const googleLoginAction = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setError('');
-      setLoading(true);
-      const res = await loginWithGoogle({ access_token: tokenResponse.access_token });
-      setLoading(false);
+  // Real Google OAuth Login (Credential Flow)
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setError('');
+    setLoading(true);
+    const res = await loginWithGoogle({ credential: credentialResponse.credential });
+    setLoading(false);
 
-      if (res.success) {
-        if (res.isNew) {
-          setIsLoginTab(false);
-          setIsGoogleOAuth(true);
-          setRegEmail(res.user.email);
-          setFullName(res.user.fullName);
-          setAvatar(res.user.avatar || '✨');
-          setStep(1);
-          setSuccess('Google account verified! Please complete your academic details to onboard.');
-          setTimeout(() => setSuccess(''), 4000);
-        } else {
-          navigate('/dashboard');
-        }
+    if (res.success) {
+      if (res.isNew) {
+        setIsLoginTab(false);
+        setIsGoogleOAuth(true);
+        setRegEmail(res.user.email);
+        setFullName(res.user.fullName);
+        setAvatar(res.user.avatar || '✨');
+        setStep(1);
+        setSuccess('Google account verified! Please complete your academic details to onboard.');
+        setTimeout(() => setSuccess(''), 4000);
       } else {
-        setError(res.error || 'Google login failed.');
+        navigate('/dashboard');
       }
-    },
-    onError: () => {
-      setError('Google sign in failed or was cancelled.');
-      setLoading(false);
+    } else {
+      setError(res.error || 'Google login failed.');
     }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google sign in failed or was cancelled.');
+    setLoading(false);
+  };
+
+  // Optional: Trigger Google One Tap floating prompt for returning users
+  useGoogleOneTapLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: handleGoogleError,
   });
 
   // Add a skill to teach
@@ -347,20 +352,17 @@ export default function Auth() {
             <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => googleLoginAction()}
-            className="btn btn-secondary"
-            style={{ width: '100%', borderRadius: '30px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18">
-              <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.24h2.9c1.7-1.57 2.69-3.88 2.69-6.57z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.47-.8 5.96-2.23l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.59-5.05-3.73H.95v2.3C2.43 15.89 5.5 18 9 18z" fill="#34A853"/>
-              <path d="M3.95 10.67c-.18-.54-.28-1.12-.28-1.67s.1-1.13.28-1.67V5.03H.95C.35 6.22 0 7.57 0 9s.35 2.78.95 3.97l3-2.3z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.5 0 2.43 2.11.95 5.03L3.95 7.33c.71-2.14 2.7-3.75 5.05-3.75z" fill="#EA4335"/>
-            </svg>
-            Sign in with Google
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              theme="outline"
+              size="large"
+              width="100%"
+              text="signin_with"
+              shape="pill"
+            />
+          </div>
         </motion.div>
       ) : (
         /* REGISTER VIEW */
@@ -390,20 +392,17 @@ export default function Auth() {
 
               {!isGoogleOAuth && (
                 <div style={{ marginBottom: '1.25rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => googleLoginAction()}
-                    className="btn btn-secondary"
-                    style={{ width: '100%', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 18 18">
-                      <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.24h2.9c1.7-1.57 2.69-3.88 2.69-6.57z" fill="#4285F4"/>
-                      <path d="M9 18c2.43 0 4.47-.8 5.96-2.23l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.59-5.05-3.73H.95v2.3C2.43 15.89 5.5 18 9 18z" fill="#34A853"/>
-                      <path d="M3.95 10.67c-.18-.54-.28-1.12-.28-1.67s.1-1.13.28-1.67V5.03H.95C.35 6.22 0 7.57 0 9s.35 2.78.95 3.97l3-2.3z" fill="#FBBC05"/>
-                      <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.5 0 2.43 2.11.95 5.03L3.95 7.33c.71-2.14 2.7-3.75 5.05-3.75z" fill="#EA4335"/>
-                    </svg>
-                    Fast Sign-Up with Google
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      theme="outline"
+                      size="large"
+                      width="100%"
+                      text="signup_with"
+                      shape="pill"
+                    />
+                  </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 0 0.5rem' }}>
                     <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
