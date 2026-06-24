@@ -18,8 +18,6 @@ export default function Auth() {
 
   // Traditional Sign In State
   const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Registration Multi-step Form State
   const [step, setStep] = useState(1);
@@ -72,13 +70,13 @@ export default function Auth() {
       return;
     }
 
-    const res = await login(loginEmail.trim(), loginPassword);
+    const res = await login(loginEmail.trim());
     setLoading(false);
 
     if (res.success) {
       navigate('/dashboard');
     } else {
-      setError(res.error || 'Login failed. Incorrect email or password.');
+      setError(res.error || 'No account found with this email. Please sign up.');
     }
   };
 
@@ -330,7 +328,7 @@ export default function Auth() {
         >
           <div style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Welcome Back</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Enter your registered campus email to sign in.</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Enter your campus email to access your account instantly.</p>
           </div>
 
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -340,6 +338,7 @@ export default function Auth() {
                 id="email-login"
                 type="email"
                 required
+                autoFocus
                 className="form-control"
                 placeholder="e.g. student@university.edu"
                 value={loginEmail}
@@ -347,36 +346,13 @@ export default function Auth() {
               />
             </div>
 
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="password-login">Password</label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="password-login"
-                  type={showLoginPassword ? "text" : "password"}
-                  required
-                  className="form-control"
-                  placeholder="••••••••"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  style={{ paddingRight: '2.5rem' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
               className="btn btn-primary"
-              style={{ width: '100%', borderRadius: '30px', marginTop: '0.5rem' }}
+              style={{ width: '100%', borderRadius: '30px' }}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? 'Signing In...' : 'Sign In →'}
             </button>
           </form>
 
@@ -393,7 +369,6 @@ export default function Auth() {
             className="btn btn-secondary"
             style={{ width: '100%', borderRadius: '30px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)' }}
           >
-            {/* Custom Google SVG Icon */}
             <svg width="18" height="18" viewBox="0 0 18 18">
               <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.24h2.9c1.7-1.57 2.69-3.88 2.69-6.57z" fill="#4285F4"/>
               <path d="M9 18c2.43 0 4.47-.8 5.96-2.23l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.59-5.05-3.73H.95v2.3C2.43 15.89 5.5 18 9 18z" fill="#34A853"/>
@@ -402,11 +377,26 @@ export default function Auth() {
             </svg>
             Sign in with Google
           </button>
-          
-          <div style={{ marginTop: '1.5rem', textAlign: 'center', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem' }}>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Seed Accounts Password: <strong>password123</strong>
-            </p>
+
+          {/* Demo accounts hint */}
+          <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Demo Accounts</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+              {[
+                { name: 'Alex Rivera 🎨', email: 'alex@university.edu' },
+                { name: 'Emma Watson ✨', email: 'emma@university.edu' },
+                { name: 'Sarah Jenkins 📊', email: 'sarah@university.edu' },
+              ].map(acc => (
+                <button
+                  key={acc.email}
+                  type="button"
+                  onClick={() => setLoginEmail(acc.email)}
+                  style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0', fontSize: '0.8rem', color: 'var(--primary)', fontFamily: 'var(--font-body)' }}
+                >
+                  {acc.name} — <span style={{ color: 'var(--text-muted)' }}>{acc.email}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </motion.div>
       ) : (

@@ -85,13 +85,13 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login student
+// Login student (email-only — no password required for sign in)
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
 
     if (!isValidEduEmail(email)) {
@@ -100,12 +100,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = await db.getUserByEmail(email);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'No student profile found with this email. Please sign up.' });
-    }
-
-    const inputHash = db.hashPassword(password.trim());
-    if (inputHash !== user.passwordHash) {
-      return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
+      return res.status(404).json({ success: false, message: 'No student profile found with this email. Please sign up first.' });
     }
 
     res.json({ success: true, user, token: 'mock-jwt-' + user.id });
