@@ -850,16 +850,21 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-// Serve static frontend in production
-const DIST_PATH = path.join(__dirname, '../dist');
-if (fs.existsSync(DIST_PATH)) {
-  app.use(express.static(DIST_PATH));
-  app.get('*splat', (req, res) => {
-    res.sendFile(path.join(DIST_PATH, 'index.html'));
+// Only start the HTTP server when run directly (not when imported by Firebase Functions)
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  // Serve static frontend in local production preview
+  const DIST_PATH = path.join(__dirname, '../dist');
+  if (fs.existsSync(DIST_PATH)) {
+    app.use(express.static(DIST_PATH));
+    app.get('*splat', (req, res) => {
+      res.sendFile(path.join(DIST_PATH, 'index.html'));
+    });
+  }
+  app.listen(PORT, () => {
+    console.log(`College Skill Swap Backend Server running on port ${PORT}`);
   });
 }
 
-// Start backend server
-app.listen(PORT, () => {
-  console.log(`College Skill Swap Backend Server running on port ${PORT}`);
-});
+export { app };
+export default app;

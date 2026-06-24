@@ -24,6 +24,10 @@ dist-ssr
 *.sw?
 deploy.zip
 
+# Firebase
+.firebase/
+.firebaserc.local
+
 # Local DB Files
 server/data/reviews.json
 server/data/session_bookings.json
@@ -33,4 +37,7 @@ server/data/*.bak
 *.sqlite
 *.bak
 *.tmp
+
+# Env files (keep .env for Vite public vars, never commit secrets)
+server/.env
 
