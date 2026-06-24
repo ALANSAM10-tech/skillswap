@@ -1,0 +1,26 @@
+# render.yaml — Render.com deployment config for the SkillSwap backend
+# Docs: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: skillswap-backend
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: node server/server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        sync: false          # You'll paste this in the Render dashboard
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: FRONTEND_URL
+        sync: false          # Paste your Vercel URL here after deploying frontend
