@@ -28,10 +28,11 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 }
 app.use('/uploads', express.static(UPLOADS_DIR));
 
-// Helper: check if email ends in .edu
+// Helper: check if email is an allowed domain (.edu or gmail.com)
 const isValidEduEmail = (email) => {
   if (!email) return false;
-  return email.toLowerCase().endsWith('.edu');
+  const lower = email.toLowerCase();
+  return lower.endsWith('.edu') || lower.endsWith('@gmail.com');
 };
 
 // --- AUTHENTICATION ROUTES ---

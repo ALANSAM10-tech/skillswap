@@ -64,12 +64,6 @@ export default function Auth() {
     setError('');
     setLoading(true);
 
-    if (!loginEmail.toLowerCase().endsWith('.edu')) {
-      setError('Only institutional .edu email addresses are permitted.');
-      setLoading(false);
-      return;
-    }
-
     const res = await login(loginEmail.trim());
     setLoading(false);
 
@@ -85,8 +79,8 @@ export default function Auth() {
     setError('');
     setLoading(true);
 
-    if (!regEmail.toLowerCase().endsWith('.edu')) {
-      setError('Only institutional .edu email addresses are permitted.');
+    if (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com')) {
+      setError('Please use a .edu institutional email or a Gmail address.');
       setLoading(false);
       return;
     }
@@ -137,12 +131,6 @@ export default function Auth() {
     setError('');
     setLoading(true);
 
-    if (!email.toLowerCase().endsWith('.edu')) {
-      setError('Only institutional .edu email addresses are permitted for Google Sign-In.');
-      setLoading(false);
-      return;
-    }
-
     const res = await loginWithGoogle({
       email: email.trim(),
       fullName: defaultName || email.split('@')[0],
@@ -153,17 +141,15 @@ export default function Auth() {
 
     if (res.success) {
       if (res.isNew) {
-        // Switch to register tab, set fields, and unlock Step 1
         setIsLoginTab(false);
         setIsGoogleOAuth(true);
         setRegEmail(email);
         setFullName(defaultName || email.split('@')[0]);
         setAvatar(defaultAvatar);
-        setStep(1); // Keep them in Step 1 to customize major & gradYear
+        setStep(1);
         setSuccess('Google account verified! Please complete your academic details to onboard.');
         setTimeout(() => setSuccess(''), 4000);
       } else {
-        // Successful login
         navigate('/dashboard');
       }
     } else {
@@ -333,14 +319,14 @@ export default function Auth() {
 
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="email-login">Campus Email (.edu)</label>
+              <label className="form-label" htmlFor="email-login">Email Address</label>
               <input
                 id="email-login"
                 type="email"
                 required
                 autoFocus
                 className="form-control"
-                placeholder="e.g. student@university.edu"
+                placeholder="e.g. student@university.edu or name@gmail.com"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
               />
@@ -397,6 +383,9 @@ export default function Auth() {
                 </button>
               ))}
             </div>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+              You can also sign in with any <strong>@gmail.com</strong> or <strong>.edu</strong> address you registered with.
+            </p>
           </div>
         </motion.div>
       ) : (
@@ -422,7 +411,7 @@ export default function Auth() {
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: '700' }}>Create Your Profile</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Only institutional .edu emails are permitted.</p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Use your .edu institutional email or Gmail address.</p>
               </div>
 
               {!isGoogleOAuth && (
@@ -480,7 +469,7 @@ export default function Auth() {
                   required
                   disabled={isGoogleOAuth}
                   className="form-control"
-                  placeholder="e.g. student@university.edu"
+                  placeholder="e.g. student@university.edu or name@gmail.com"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                 />
@@ -585,8 +574,8 @@ export default function Auth() {
                     setError('Please complete all required profile fields.');
                     return;
                   }
-                  if (!regEmail.toLowerCase().endsWith('.edu')) {
-                    setError('Verification failed: Email must end in .edu');
+                  if (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com')) {
+                    setError('Please use a .edu institutional email or a Gmail address.');
                     return;
                   }
                   if (!isGoogleOAuth && (!regPassword || regPassword.length < 6)) {
