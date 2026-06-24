@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import Avatar from '../components/common/Avatar';
 import { 
   ArrowLeft, MessageSquare, Send, Clock, Copy, ShieldCheck, Mail, MessageCircle, 
-  Award, Trophy, CheckCircle, RefreshCw, Calendar, Sparkles, Star, User, BookOpen 
+  Award, Trophy, CheckCircle, RefreshCw, Calendar, Sparkles
 } from 'lucide-react';
 
 export default function Profile() {

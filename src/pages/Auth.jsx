@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldAlert, CheckCircle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';

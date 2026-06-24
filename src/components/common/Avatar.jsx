@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function Avatar({ src, alt = "User avatar", size = "1em", style = {} }) {
   if (!src) return <span style={{ fontSize: size, ...style }}>👤</span>;

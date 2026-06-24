@@ -26,7 +26,7 @@ export default function Messages() {
     scrollToBottom();
   }, [messages, selectedUserId]);
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       setLoading(true);
       const [usersRes, msgsRes] = await Promise.all([
@@ -48,9 +48,9 @@ export default function Messages() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const fetchMessages = async () => {
+  async function fetchMessages() {
     if (!user) return;
     try {
       const res = await fetch(`/api/messages/${user.id}`);
@@ -65,13 +65,13 @@ export default function Messages() {
     } catch (err) {
       // silent fail on polling
     }
-  };
+  }
 
-  const scrollToBottom = () => {
+  function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }
 
-  const handleSendMessage = async (e) => {
+  async function handleSendMessage(e) {
     e.preventDefault();
     if (!inputMessage.trim() || !selectedUserId || !user) return;
 
@@ -102,7 +102,7 @@ export default function Messages() {
     } catch (err) {
       console.error("Error sending message", err);
     }
-  };
+  }
 
   // Derived state
   const selectedUser = users.find(u => u.id === selectedUserId);
