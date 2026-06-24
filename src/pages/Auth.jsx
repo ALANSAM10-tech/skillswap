@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldAlert, CheckCircle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
+import { apiUrl } from '../services/apiConfig';
 
 const AVATARS = ['🎓', '🎨', '✨', '📸', '⚙️', '🌍', '🎬', '📊', '🛠️', '💻', '💡', '✍️'];
 const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
@@ -33,6 +34,8 @@ export default function Auth() {
   
   // Google OAuth flow flags
   const [isGoogleOAuth, setIsGoogleOAuth] = useState(false);
+  const googleClientId = __GOOGLE_CLIENT_ID__ || import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.GOOGLE_CLIENT_ID || '';
+  const isGoogleConfigured = Boolean(googleClientId);
 
   // Selected Skills State
   const [teachSkills, setTeachSkills] = useState([]); // Array of { name, level }
@@ -52,7 +55,7 @@ export default function Auth() {
 
   // Load Skills Taxonomy
   useEffect(() => {
-    fetch('/api/skills')
+    fetch(apiUrl('/api/skills'))
       .then(res => res.json())
       .then(data => setSkillsTaxonomy(data))
       .catch(err => console.error('Error loading skills taxonomy:', err));
@@ -158,6 +161,7 @@ export default function Auth() {
   useGoogleOneTapLogin({
     onSuccess: handleGoogleSuccess,
     onError: handleGoogleError,
+    disabled: !isGoogleConfigured,
   });
 
   // Add a skill to teach
@@ -193,7 +197,7 @@ export default function Auth() {
     if (!customSkill.trim()) return;
 
     try {
-      const res = await fetch('/api/skills/custom', {
+      const res = await fetch(apiUrl('/api/skills/custom'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skillName: customSkill.trim() })
@@ -352,17 +356,23 @@ export default function Auth() {
             <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleError}
-              theme="outline"
-              size="large"
-              width="100%"
-              text="signin_with"
-              shape="pill"
-            />
-          </div>
+          {isGoogleConfigured ? (
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                width="100%"
+                text="signin_with"
+                shape="pill"
+              />
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+              Google sign in is unavailable until the Google OAuth client ID is configured.
+            </div>
+          )}
         </motion.div>
       ) : (
         /* REGISTER VIEW */
@@ -392,17 +402,23 @@ export default function Auth() {
 
               {!isGoogleOAuth && (
                 <div style={{ marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={handleGoogleError}
-                      theme="outline"
-                      size="large"
-                      width="100%"
-                      text="signup_with"
-                      shape="pill"
-                    />
-                  </div>
+                  {isGoogleConfigured ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginTop: '0.5rem' }}>
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        theme="outline"
+                        size="large"
+                        width="100%"
+                        text="signup_with"
+                        shape="pill"
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                      Google sign up is unavailable until the Google OAuth client ID is configured.
+                    </div>
+                  )}
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '1rem 0 0.5rem' }}>
                     <div style={{ flexGrow: 1, height: '1px', backgroundColor: 'var(--border-color)' }}></div>
