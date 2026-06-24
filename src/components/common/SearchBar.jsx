@@ -1,7 +1,7 @@
 
 import { Search, X } from 'lucide-react';
 
-export default function SearchBar({ value, onChange, placeholder = "Search for food..." }) {
+export default function SearchBar({ value, onChange, placeholder = "Search..." }) {
   return (
     <div style={{ position: 'relative', width: '100%' }}>
       <Search

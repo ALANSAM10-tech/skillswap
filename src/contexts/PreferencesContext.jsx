@@ -5,10 +5,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 export const PreferencesContext = createContext();
 
 export const PreferencesProvider = ({ children }) => {
-  const [preferences, setPreferences] = useLocalStorage('food_preferences', {
+  const [preferences, setPreferences] = useLocalStorage('skillswap_preferences', {
     theme: 'light',
-    preferredCategory: 'All',
-    sortBy: 'price'
   });
 
   useEffect(() => {
