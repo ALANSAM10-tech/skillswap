@@ -17,13 +17,13 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  const login = async (email) => {
+  const login = async (email, password) => {
     try {
       setLoading(true);
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -58,6 +58,34 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('skillswap_user', JSON.stringify(data.user));
       localStorage.setItem('skillswap_token', data.token);
       return { success: true };
+    } catch (err) {
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async (googleProfile) => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(googleProfile)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Google authentication failed');
+      }
+      
+      if (!data.isNew) {
+        setUser(data.user);
+        setToken(data.token);
+        localStorage.setItem('skillswap_user', JSON.stringify(data.user));
+        localStorage.setItem('skillswap_token', data.token);
+      }
+      
+      return { success: true, isNew: data.isNew, user: data.user, token: data.token };
     } catch (err) {
       return { success: false, error: err.message };
     } finally {
@@ -117,7 +145,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, switchUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateProfile, switchUser, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

@@ -39,7 +39,7 @@ const isValidEduEmail = (email) => {
 // Register student
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { email, fullName, major, gradYear, bio, avatar, teachSkills, learnSkills, contactInfo } = req.body;
+    const { email, fullName, major, gradYear, bio, avatar, teachSkills, learnSkills, contactInfo, password, isGoogle } = req.body;
 
     if (!email || !fullName || !major || !gradYear) {
       return res.status(400).json({ success: false, message: 'Missing required onboarding profile fields' });
@@ -54,6 +54,16 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'An account with this email address already exists.' });
     }
 
+    let passwordHash = '';
+    if (!isGoogle) {
+      if (!password || password.trim().length < 6) {
+        return res.status(400).json({ success: false, message: 'Password must be at least 6 characters long.' });
+      }
+      passwordHash = db.hashPassword(password.trim());
+    } else {
+      passwordHash = db.hashPassword('google-auth-bypass-pass-' + Math.random());
+    }
+
     const newUser = {
       email: email.toLowerCase(),
       fullName,
@@ -64,6 +74,7 @@ app.post('/api/auth/register', async (req, res) => {
       teachSkills: teachSkills || [],
       learnSkills: learnSkills || [],
       contactInfo: contactInfo || { discord: '', whatsapp: '', email: email.toLowerCase() },
+      passwordHash,
       createdAt: new Date().toISOString()
     };
 
@@ -77,10 +88,14 @@ app.post('/api/auth/register', async (req, res) => {
 // Login student
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required.' });
+    }
+
+    if (!isValidEduEmail(email)) {
+      return res.status(400).json({ success: false, message: 'Only institutional .edu email addresses are permitted.' });
     }
 
     const user = await db.getUserByEmail(email);
@@ -88,9 +103,50 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(404).json({ success: false, message: 'No student profile found with this email. Please sign up.' });
     }
 
+    const inputHash = db.hashPassword(password.trim());
+    if (inputHash !== user.passwordHash) {
+      return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
+    }
+
     res.json({ success: true, user, token: 'mock-jwt-' + user.id });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Login failed', error: error.message });
+  }
+});
+
+// Google Sign-In / OAuth
+app.post('/api/auth/google', async (req, res) => {
+  try {
+    const { email, fullName, avatar } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Google email is required.' });
+    }
+
+    const user = await db.getUserByEmail(email);
+    if (user) {
+      // User already exists, log them in instantly
+      res.json({ success: true, isNew: false, user, token: 'mock-jwt-' + user.id });
+    } else {
+      // User does not exist, return isNew: true so client can proceed with onboarding
+      // Generate a default mock user structure
+      const newUserDraft = {
+        email: email.toLowerCase(),
+        fullName: fullName || 'Google Learner',
+        major: '',
+        gradYear: '2027',
+        bio: '',
+        avatar: avatar || '✨',
+        teachSkills: [],
+        learnSkills: [],
+        contactInfo: { discord: '', whatsapp: '', email: email.toLowerCase() },
+        createdAt: new Date().toISOString()
+      };
+      
+      res.json({ success: true, isNew: true, user: newUserDraft });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Google authentication failed', error: error.message });
   }
 });
 
@@ -181,7 +237,7 @@ app.put('/api/users/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Student profile not found.' });
     }
 
-    const { fullName, major, gradYear, bio, avatar, teachSkills, learnSkills, contactInfo, isExpert } = req.body;
+    const { fullName, major, gradYear, bio, avatar, teachSkills, learnSkills, contactInfo, isExpert, availability } = req.body;
 
     const updatedUser = {
       ...existing,
@@ -193,13 +249,143 @@ app.put('/api/users/:id', async (req, res) => {
       teachSkills: teachSkills || existing.teachSkills,
       learnSkills: learnSkills || existing.learnSkills,
       contactInfo: contactInfo || existing.contactInfo,
-      isExpert: isExpert !== undefined ? isExpert : existing.isExpert
+      isExpert: isExpert !== undefined ? isExpert : existing.isExpert,
+      availability: availability !== undefined ? availability : existing.availability
     };
 
     const saved = await db.saveUser(updatedUser);
     res.json({ success: true, user: saved });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+  }
+});
+
+// Simulate a community action to test scoring/levels
+app.post('/api/users/:id/simulate-action', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { actionType } = req.body;
+
+    const user = await db.getUserById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Student profile not found.' });
+    }
+
+    if (!user.impactMetrics) {
+      user.impactMetrics = { studentsHelped: 0, teachingHours: 0, successfulSwaps: 0, learningSessionsCompleted: 0 };
+    }
+    if (!user.swapHistory) {
+      user.swapHistory = [];
+    }
+    if (user.knowledgeScore === undefined) {
+      user.knowledgeScore = 0;
+    }
+    if (user.uploadedNotesCount === undefined) {
+      user.uploadedNotesCount = 0;
+    }
+
+    let pointsEarned = 0;
+    let message = '';
+
+    switch (actionType) {
+      case 'first_teach':
+        pointsEarned = 20;
+        user.impactMetrics.teachingHours = (user.impactMetrics.teachingHours || 0) + 1.0;
+        user.impactMetrics.studentsHelped = (user.impactMetrics.studentsHelped || 0) + 1;
+        user.impactMetrics.successfulSwaps = (user.impactMetrics.successfulSwaps || 0) + 1;
+        user.swapHistory.unshift({
+          id: 'sh-sim-' + Date.now(),
+          partnerName: 'Mock Student ' + (user.impactMetrics.studentsHelped),
+          partnerAvatar: '🎓',
+          skillsTaught: [user.teachSkills[0]?.name || 'Skills Exchange'],
+          skillsLearned: [user.learnSkills[0]?.name || 'New Skill'],
+          date: new Date().toISOString().split('T')[0],
+          status: 'COMPLETED'
+        });
+        message = 'Completed first teaching session! +20 points';
+        break;
+
+      case 'teach_30':
+        pointsEarned = 10;
+        user.impactMetrics.teachingHours = (user.impactMetrics.teachingHours || 0) + 0.5;
+        user.impactMetrics.studentsHelped = (user.impactMetrics.studentsHelped || 0) + 1;
+        user.swapHistory.unshift({
+          id: 'sh-sim-' + Date.now(),
+          partnerName: 'Mock Student ' + (user.impactMetrics.studentsHelped),
+          partnerAvatar: '✨',
+          skillsTaught: [user.teachSkills[0]?.name || 'Skills Exchange'],
+          skillsLearned: [user.learnSkills[0]?.name || 'New Skill'],
+          date: new Date().toISOString().split('T')[0],
+          status: 'COMPLETED'
+        });
+        message = 'Completed a 30-minute teaching session! +10 points';
+        break;
+
+      case 'teach_60':
+        pointsEarned = 20;
+        user.impactMetrics.teachingHours = (user.impactMetrics.teachingHours || 0) + 1.0;
+        user.impactMetrics.studentsHelped = (user.impactMetrics.studentsHelped || 0) + 1;
+        user.swapHistory.unshift({
+          id: 'sh-sim-' + Date.now(),
+          partnerName: 'Mock Student ' + (user.impactMetrics.studentsHelped),
+          partnerAvatar: '🎨',
+          skillsTaught: [user.teachSkills[0]?.name || 'Skills Exchange'],
+          skillsLearned: [user.learnSkills[0]?.name || 'New Skill'],
+          date: new Date().toISOString().split('T')[0],
+          status: 'COMPLETED'
+        });
+        message = 'Completed a 1-hour teaching session! +20 points';
+        break;
+
+      case 'upload_notes':
+        pointsEarned = 5;
+        user.uploadedNotesCount = (user.uploadedNotesCount || 0) + 1;
+        message = 'Uploaded study notes/resources! +5 points';
+        break;
+
+      case 'complete_swap':
+        pointsEarned = 30;
+        user.impactMetrics.successfulSwaps = (user.impactMetrics.successfulSwaps || 0) + 5;
+        // Seed 5 historical swaps
+        for (let i = 0; i < 5; i++) {
+          user.swapHistory.unshift({
+            id: 'sh-sim-swap-' + i + '-' + Date.now(),
+            partnerName: 'Swap Peer ' + (user.impactMetrics.successfulSwaps - 4 + i),
+            partnerAvatar: '💡',
+            skillsTaught: [user.teachSkills[0]?.name || 'Skills Exchange'],
+            skillsLearned: [user.learnSkills[0]?.name || 'New Skill'],
+            date: new Date().toISOString().split('T')[0],
+            status: 'COMPLETED'
+          });
+        }
+        message = 'Completed 5 successful skill swaps! +30 points';
+        break;
+
+      default:
+        return res.status(400).json({ success: false, message: 'Invalid action type.' });
+    }
+
+    user.knowledgeScore += pointsEarned;
+    const saved = await db.saveUser(user);
+    
+    // Fetch user with fresh average reviews
+    const reviews = await db.getReviews();
+    const userReviews = reviews.filter(r => r.mentorId === saved.id);
+    const averageRating = userReviews.length
+      ? parseFloat((userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length).toFixed(1))
+      : 0;
+
+    res.json({
+      success: true,
+      message,
+      user: {
+        ...saved,
+        averageRating,
+        reviewCount: userReviews.length
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to simulate action', error: error.message });
   }
 });
 
@@ -438,6 +624,24 @@ app.post('/api/reviews', async (req, res) => {
     };
 
     const newReview = await db.saveReview(review);
+
+    // Update mentor score and stats
+    try {
+      const mentor = await db.getUserById(mentorId);
+      if (mentor) {
+        if (!mentor.impactMetrics) {
+          mentor.impactMetrics = { studentsHelped: 0, teachingHours: 0, successfulSwaps: 0, learningSessionsCompleted: 0 };
+        }
+        mentor.impactMetrics.studentsHelped = (mentor.impactMetrics.studentsHelped || 0) + 1;
+        if (ratingNum === 5) {
+          mentor.knowledgeScore = (mentor.knowledgeScore || 0) + 15;
+        }
+        await db.saveUser(mentor);
+      }
+    } catch (err) {
+      console.error('Failed to update mentor stats after review:', err);
+    }
+
     res.status(201).json({ success: true, review: newReview });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
