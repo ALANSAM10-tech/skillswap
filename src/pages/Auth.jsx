@@ -363,30 +363,6 @@ export default function Auth() {
             </svg>
             Sign in with Google
           </button>
-
-          {/* Demo accounts hint */}
-          <div style={{ marginTop: '1.5rem', padding: '1rem', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
-            <p style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Demo Accounts</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              {[
-                { name: 'Alex Rivera 🎨', email: 'alex@university.edu' },
-                { name: 'Emma Watson ✨', email: 'emma@university.edu' },
-                { name: 'Sarah Jenkins 📊', email: 'sarah@university.edu' },
-              ].map(acc => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => setLoginEmail(acc.email)}
-                  style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem 0', fontSize: '0.8rem', color: 'var(--primary)', fontFamily: 'var(--font-body)' }}
-                >
-                  {acc.name} — <span style={{ color: 'var(--text-muted)' }}>{acc.email}</span>
-                </button>
-              ))}
-            </div>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
-              You can also sign in with any <strong>@gmail.com</strong> or <strong>.edu</strong> address you registered with.
-            </p>
-          </div>
         </motion.div>
       ) : (
         /* REGISTER VIEW */
@@ -827,48 +803,10 @@ export default function Auth() {
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Choose a Google account to continue to SkillSwap</p>
               </div>
 
-              {/* Accounts list */}
+              {/* Email input — enter any Google account email */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                <button
-                  onClick={() => handleGoogleOAuthSelect('alex@university.edu', 'Alex Rivera', '🎨')}
-                  className="btn btn-secondary-filled"
-                  style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-start', textTransform: 'none', border: '1px solid var(--border-color)' }}
-                >
-                  <span style={{ fontSize: '1.25rem' }}>🎨</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Alex Rivera</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>alex@university.edu</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleGoogleOAuthSelect('emma@university.edu', 'Emma Watson', '✨')}
-                  className="btn btn-secondary-filled"
-                  style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-start', textTransform: 'none', border: '1px solid var(--border-color)' }}
-                >
-                  <span style={{ fontSize: '1.25rem' }}>✨</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Emma Watson</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>emma@university.edu</div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => handleGoogleOAuthSelect('sarah@university.edu', 'Sarah Jenkins', '📊')}
-                  className="btn btn-secondary-filled"
-                  style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'flex-start', textTransform: 'none', border: '1px solid var(--border-color)' }}
-                >
-                  <span style={{ fontSize: '1.25rem' }}>📊</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: '700', fontSize: '0.85rem' }}>Sarah Jenkins</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>sarah@university.edu</div>
-                  </div>
-                </button>
-
-                {/* Custom Gmail / edu account input */}
-                <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem', marginTop: '0.5rem' }}>
                   <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '0.4rem' }}>
-                    Use another Google Account (.edu)
+                    Enter your Google Account email
                   </label>
                   <div style={{ display: 'flex', gap: '0.4rem' }}>
                     <input
@@ -890,7 +828,6 @@ export default function Auth() {
                       Login
                     </button>
                   </div>
-                </div>
               </div>
 
               {/* Cancel button */}
