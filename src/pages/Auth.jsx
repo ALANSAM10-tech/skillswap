@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldAlert, CheckCircle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { useGoogleLogin } from '@react-oauth/google';
 
 const AVATARS = ['🎓', '🎨', '✨', '📸', '⚙️', '🌍', '🎬', '📊', '🛠️', '💻', '💡', '✍️'];
 const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
@@ -32,8 +33,6 @@ export default function Auth() {
   
   // Google OAuth flow flags
   const [isGoogleOAuth, setIsGoogleOAuth] = useState(false);
-  const [showGooglePopup, setShowGooglePopup] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
   // Selected Skills State
   const [teachSkills, setTeachSkills] = useState([]); // Array of { name, level }
@@ -125,37 +124,36 @@ export default function Auth() {
     }
   };
 
-  // Google OAuth Login Simulation
-  const handleGoogleOAuthSelect = async (email, defaultName = '', defaultAvatar = '✨') => {
-    setShowGooglePopup(false);
-    setError('');
-    setLoading(true);
+  // Real Google OAuth Login
+  const googleLoginAction = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError('');
+      setLoading(true);
+      const res = await loginWithGoogle({ access_token: tokenResponse.access_token });
+      setLoading(false);
 
-    const res = await loginWithGoogle({
-      email: email.trim(),
-      fullName: defaultName || email.split('@')[0],
-      avatar: defaultAvatar
-    });
-
-    setLoading(false);
-
-    if (res.success) {
-      if (res.isNew) {
-        setIsLoginTab(false);
-        setIsGoogleOAuth(true);
-        setRegEmail(email);
-        setFullName(defaultName || email.split('@')[0]);
-        setAvatar(defaultAvatar);
-        setStep(1);
-        setSuccess('Google account verified! Please complete your academic details to onboard.');
-        setTimeout(() => setSuccess(''), 4000);
+      if (res.success) {
+        if (res.isNew) {
+          setIsLoginTab(false);
+          setIsGoogleOAuth(true);
+          setRegEmail(res.user.email);
+          setFullName(res.user.fullName);
+          setAvatar(res.user.avatar || '✨');
+          setStep(1);
+          setSuccess('Google account verified! Please complete your academic details to onboard.');
+          setTimeout(() => setSuccess(''), 4000);
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        navigate('/dashboard');
+        setError(res.error || 'Google login failed.');
       }
-    } else {
-      setError(res.error || 'Google login failed.');
+    },
+    onError: () => {
+      setError('Google sign in failed or was cancelled.');
+      setLoading(false);
     }
-  };
+  });
 
   // Add a skill to teach
   const toggleTeachSkill = (skill) => {
@@ -351,7 +349,7 @@ export default function Auth() {
 
           <button
             type="button"
-            onClick={() => setShowGooglePopup(true)}
+            onClick={() => googleLoginAction()}
             className="btn btn-secondary"
             style={{ width: '100%', borderRadius: '30px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', backgroundColor: 'var(--bg-secondary)' }}
           >
@@ -394,7 +392,7 @@ export default function Auth() {
                 <div style={{ marginBottom: '1.25rem' }}>
                   <button
                     type="button"
-                    onClick={() => setShowGooglePopup(true)}
+                    onClick={() => googleLoginAction()}
                     className="btn btn-secondary"
                     style={{ width: '100%', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
                   >
@@ -767,84 +765,6 @@ export default function Auth() {
           )}
         </motion.div>
       )}
-
-      {/* SIMULATED GOOGLE OAUTH POPUP ACCOUNT CHOOSER */}
-      <AnimatePresence>
-        {showGooglePopup && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '1rem'
-          }}>
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="glass-panel" 
-              style={{ width: '100%', maxWidth: '400px', backgroundColor: 'var(--bg-secondary)', padding: '1.75rem', position: 'relative' }}
-            >
-              {/* Google logo header */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
-                <svg width="28" height="28" viewBox="0 0 18 18">
-                  <path d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.47h4.84c-.21 1.12-.84 2.07-1.79 2.7v2.24h2.9c1.7-1.57 2.69-3.88 2.69-6.57z" fill="#4285F4"/>
-                  <path d="M9 18c2.43 0 4.47-.8 5.96-2.23l-2.9-2.24c-.8.54-1.84.87-3.06.87-2.35 0-4.34-1.59-5.05-3.73H.95v2.3C2.43 15.89 5.5 18 9 18z" fill="#34A853"/>
-                  <path d="M3.95 10.67c-.18-.54-.28-1.12-.28-1.67s.1-1.13.28-1.67V5.03H.95C.35 6.22 0 7.57 0 9s.35 2.78.95 3.97l3-2.3z" fill="#FBBC05"/>
-                  <path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.5 0 2.43 2.11.95 5.03L3.95 7.33c.71-2.14 2.7-3.75 5.05-3.75z" fill="#EA4335"/>
-                </svg>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: '800', fontFamily: 'var(--font-heading)' }}>Sign in with Google</h3>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Choose a Google account to continue to SkillSwap</p>
-              </div>
-
-              {/* Email input — enter any Google account email */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                  <label style={{ fontSize: '0.75rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '0.4rem' }}>
-                    Enter your Google Account email
-                  </label>
-                  <div style={{ display: 'flex', gap: '0.4rem' }}>
-                    <input
-                      type="email"
-                      className="form-control"
-                      placeholder="e.g. guest@university.edu"
-                      value={customGoogleEmail}
-                      onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                      style={{ fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
-                    />
-                    <button
-                      onClick={() => {
-                        if (!customGoogleEmail.trim()) return;
-                        handleGoogleOAuthSelect(customGoogleEmail.trim());
-                      }}
-                      className="btn btn-primary"
-                      style={{ padding: '0 1rem', fontSize: '0.8rem', borderRadius: '8px' }}
-                    >
-                      Login
-                    </button>
-                  </div>
-              </div>
-
-              {/* Cancel button */}
-              <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
-                <button
-                  onClick={() => setShowGooglePopup(false)}
-                  className="btn btn-secondary"
-                  style={{ padding: '0.4rem 1.5rem', fontSize: '0.8rem', borderRadius: '30px' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }

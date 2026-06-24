@@ -113,11 +113,23 @@ app.post('/api/auth/login', async (req, res) => {
 // Google Sign-In / OAuth
 app.post('/api/auth/google', async (req, res) => {
   try {
-    const { email, fullName, avatar } = req.body;
+    const { access_token } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'Google email is required.' });
+    if (!access_token) {
+      return res.status(400).json({ success: false, message: 'Google access token is required.' });
     }
+
+    // Fetch user profile from Google using the access token
+    const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+    
+    if (!googleRes.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+    
+    const googleUser = await googleRes.json();
+    const { email, name: fullName, picture: avatar } = googleUser;
 
     const user = await db.getUserByEmail(email);
     if (user) {
@@ -125,7 +137,6 @@ app.post('/api/auth/google', async (req, res) => {
       res.json({ success: true, isNew: false, user, token: 'mock-jwt-' + user.id });
     } else {
       // User does not exist, return isNew: true so client can proceed with onboarding
-      // Generate a default mock user structure
       const newUserDraft = {
         email: email.toLowerCase(),
         fullName: fullName || 'Google Learner',
@@ -142,6 +153,7 @@ app.post('/api/auth/google', async (req, res) => {
       res.json({ success: true, isNew: true, user: newUserDraft });
     }
   } catch (error) {
+    console.error("Google Auth Error:", error);
     res.status(500).json({ success: false, message: 'Google authentication failed', error: error.message });
   }
 });
