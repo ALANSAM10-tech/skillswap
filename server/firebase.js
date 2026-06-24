@@ -1,5 +1,6 @@
 /* global process */
-import admin from 'firebase-admin';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,26 +18,30 @@ let isFirebaseConnected = false;
 
 if (FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
   try {
+    // Replace escaped newlines in private key
     const privateKey = FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
-    
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: FIREBASE_PROJECT_ID,
-        clientEmail: FIREBASE_CLIENT_EMAIL,
-        privateKey: privateKey
-      })
-    });
-    
-    firestoreDb = admin.firestore();
+
+    // Avoid re-initializing if already initialized (e.g. hot reload)
+    const app = getApps().length === 0
+      ? initializeApp({
+          credential: cert({
+            projectId: FIREBASE_PROJECT_ID,
+            clientEmail: FIREBASE_CLIENT_EMAIL,
+            privateKey: privateKey,
+          }),
+        })
+      : getApps()[0];
+
+    firestoreDb = getFirestore(app);
     isFirebaseConnected = true;
     console.log('Successfully connected to Firebase Firestore!');
   } catch (error) {
     console.error('Failed to initialize Firebase Admin SDK:', error.message);
-    console.log('Falling back to local JSON database.');
+    console.log('Falling back to local SQLite database.');
   }
 } else {
   console.log('Firebase environment credentials not fully configured in server/.env.');
-  console.log('Using local JSON files (products.json / orders.json) for database persistence.');
+  console.log('Using local SQLite database for database persistence.');
 }
 
 export { firestoreDb, isFirebaseConnected };
