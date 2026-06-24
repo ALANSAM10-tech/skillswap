@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import Avatar from '../components/common/Avatar';
@@ -15,18 +15,11 @@ export default function Messages() {
   
   const messagesEndRef = useRef(null);
 
-  useEffect(() => {
-    fetchData();
-    // Poll for new messages every 5 seconds (simple real-time fallback)
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
-  }, [user]);
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, selectedUserId]);
-
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [usersRes, msgsRes] = await Promise.all([
@@ -48,9 +41,9 @@ export default function Messages() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user]);
 
-  async function fetchMessages() {
+  const fetchMessages = useCallback(async () => {
     if (!user) return;
     try {
       const res = await fetch(`/api/messages/${user.id}`);
@@ -62,14 +55,21 @@ export default function Messages() {
           return prev;
         });
       }
-    } catch (err) {
+    } catch {
       // silent fail on polling
     }
-  }
+  }, [user]);
 
-  function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }
+  useEffect(() => {
+    Promise.resolve().then(() => fetchData());
+    // Poll for new messages every 5 seconds (simple real-time fallback)
+    const interval = setInterval(fetchMessages, 5000);
+    return () => clearInterval(interval);
+  }, [fetchData, fetchMessages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, selectedUserId, scrollToBottom]);
 
   async function handleSendMessage(e) {
     e.preventDefault();

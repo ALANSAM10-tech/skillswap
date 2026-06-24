@@ -192,19 +192,19 @@ app.get('/api/users', async (req, res) => {
         u.fullName.toLowerCase().includes(q) ||
         u.major.toLowerCase().includes(q) ||
         u.bio.toLowerCase().includes(q) ||
-        u.teachSkills.some(s => s.name.toLowerCase().includes(q)) ||
-        u.learnSkills.some(s => s.name.toLowerCase().includes(q))
+        (u.teachSkills || []).some(s => s.name.toLowerCase().includes(q)) ||
+        (u.learnSkills || []).some(s => s.name.toLowerCase().includes(q))
       );
     }
 
     // Filter by teaching skill
     if (teach) {
-      users = users.filter(u => u.teachSkills.some(s => s.name.toLowerCase() === teach.toLowerCase()));
+      users = users.filter(u => (u.teachSkills || []).some(s => s.name.toLowerCase() === teach.toLowerCase()));
     }
 
     // Filter by learning skill
     if (learn) {
-      users = users.filter(u => u.learnSkills.some(s => s.name.toLowerCase() === learn.toLowerCase()));
+      users = users.filter(u => (u.learnSkills || []).some(s => s.name.toLowerCase() === learn.toLowerCase()));
     }
 
     res.json(users);
@@ -556,9 +556,9 @@ app.post('/api/ai/learning-path', async (req, res) => {
       
       // Find campus students who teach this skill
       const mentors = users
-        .filter(u => u.teachSkills.some(s => s.name.toLowerCase() === skillName.toLowerCase()))
+        .filter(u => (u.teachSkills || []).some(s => s.name.toLowerCase() === skillName.toLowerCase()))
         .map(u => {
-          const teachInfo = u.teachSkills.find(s => s.name.toLowerCase() === skillName.toLowerCase());
+          const teachInfo = (u.teachSkills || []).find(s => s.name.toLowerCase() === skillName.toLowerCase());
           return {
             id: u.id,
             fullName: u.fullName,

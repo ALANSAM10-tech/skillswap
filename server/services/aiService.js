@@ -92,9 +92,16 @@ function localFallbackRoadmap(goal, availableSkills) {
     const mentionedSkills = [];
     availableSkills.forEach(skill => {
       // Look for exact word matches or substring matches for multi-word skills
-      const skillPattern = new RegExp(`\\b${skill.toLowerCase()}\\b`, 'i');
-      if (skillPattern.test(goalLower) || (skill.length > 3 && goalLower.includes(skill.toLowerCase()))) {
-        mentionedSkills.push(skill);
+      try {
+        const escaped = skill.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const skillPattern = new RegExp(`\\b${escaped}\\b`, 'i');
+        if (skillPattern.test(goalLower) || (skill.length > 3 && goalLower.includes(skill.toLowerCase()))) {
+          mentionedSkills.push(skill);
+        }
+      } catch {
+        if (goalLower.includes(skill.toLowerCase())) {
+          mentionedSkills.push(skill);
+        }
       }
     });
 
@@ -132,7 +139,7 @@ export async function generateLearningPath(goal, availableSkills) {
   // 1. Check if OpenAI API Key is provided
   if (OPENAI_API_KEY) {
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completures', {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

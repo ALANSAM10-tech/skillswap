@@ -556,3 +556,151 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--primary) !important;
   box-shadow: 0 0 8px var(--primary-glow) !important;
 }
+
+/* Premium Landing Page Additions */
+.hero-gradient-text {
+  background: linear-gradient(135deg, var(--primary) 0%, #a855f7 50%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+.hero-grid-pattern {
+  background-image: 
+    radial-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+    radial-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+.bento-card {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition-smooth);
+}
+
+.bento-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.bento-card-large {
+  grid-column: span 8;
+}
+
+.bento-card-medium {
+  grid-column: span 6;
+}
+
+.bento-card-small {
+  grid-column: span 4;
+}
+
+@media (max-width: 992px) {
+  .bento-card, .bento-card-large, .bento-card-medium, .bento-card-small {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 768px) {
+  .bento-card, .bento-card-large, .bento-card-medium, .bento-card-small {
+    grid-column: span 12;
+  }
+}
+
+/* Match Simulator Widget */
+.sim-select-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.sim-select-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px var(--primary-glow);
+}
+
+/* Accordion FAQ */
+.faq-accordion {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.faq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  transition: color 0.2s ease;
+}
+
+.faq-header:hover {
+  color: var(--primary);
+}
+
+.faq-content {
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+  max-height: 0;
+}
+
+.faq-content.open {
+  max-height: 200px;
+  padding-bottom: 1.25rem;
+}
+
+/* Tab Preview */
+.tab-preview-btn {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition-fast);
+  outline: none;
+}
+
+.tab-preview-btn.active {
+  color: var(--primary);
+}
+
+.tab-preview-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--primary);
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}

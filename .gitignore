@@ -28,4 +28,9 @@ deploy.zip
 server/data/reviews.json
 server/data/session_bookings.json
 server/data/sessions.json
+server/data/database.sqlite
+server/data/*.bak
+*.sqlite
+*.bak
+*.tmp
 

@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import sqlite3 from 'sqlite3';
+import { open } from 'sqlite';
 import { firestoreDb, isFirebaseConnected } from './firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,60 +35,179 @@ const INITIAL_SKILLS = [
   "Public Speaking", "Resume Writing", "Interview Prep", "Technical Writing", "Product Management"
 ];
 
-// No pre-seeded users — all users register themselves
 const INITIAL_USERS = [];
-
-// No pre-seeded reviews, sessions, or bookings
-const INITIAL_REVIEWS = [];
-const INITIAL_SESSIONS = [];
-const INITIAL_BOOKINGS = [];
-
-// Helper to write file atomically
-function writeFileAtomic(filePath, data) {
-  const tempPath = filePath + '.tmp';
-  fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), 'utf8');
-  fs.renameSync(tempPath, filePath);
-}
 
 class Database {
   constructor() {
-    this.init();
+    this.sqliteDb = null;
+    this.initPromise = this.init();
   }
 
   hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   }
 
-  init() {
-    // Ensure skills taxonomy exists (this is functional data, not demo data)
-    if (!fs.existsSync(SKILLS_FILE)) {
-      writeFileAtomic(SKILLS_FILE, INITIAL_SKILLS);
-    }
+  async init() {
+    // If not using Firebase, initialize SQLite
+    if (!isFirebaseConnected) {
+      try {
+        this.sqliteDb = await open({
+          filename: path.join(DATA_DIR, 'database.sqlite'),
+          driver: sqlite3.Database
+        });
 
-    // Create empty data files if they don't exist
-    if (!fs.existsSync(USERS_FILE)) {
-      writeFileAtomic(USERS_FILE, []);
-    }
-    if (!fs.existsSync(SWAPS_FILE)) {
-      writeFileAtomic(SWAPS_FILE, []);
-    }
-    if (!fs.existsSync(REVIEWS_FILE)) {
-      writeFileAtomic(REVIEWS_FILE, []);
-    }
-    if (!fs.existsSync(SESSIONS_FILE)) {
-      writeFileAtomic(SESSIONS_FILE, []);
-    }
-    if (!fs.existsSync(BOOKINGS_FILE)) {
-      writeFileAtomic(BOOKINGS_FILE, []);
-    }
-    if (!fs.existsSync(MESSAGES_FILE)) {
-      writeFileAtomic(MESSAGES_FILE, []);
+        // Initialize SQLite Tables
+        await this.sqliteDb.exec(`
+          CREATE TABLE IF NOT EXISTS skills (
+            name TEXT PRIMARY KEY
+          );
+          CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE,
+            data TEXT
+          );
+          CREATE TABLE IF NOT EXISTS swap_requests (
+            id TEXT PRIMARY KEY,
+            data TEXT
+          );
+          CREATE TABLE IF NOT EXISTS reviews (
+            id TEXT PRIMARY KEY,
+            reviewerId TEXT,
+            mentorId TEXT,
+            data TEXT
+          );
+          CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            data TEXT
+          );
+          CREATE TABLE IF NOT EXISTS bookings (
+            id TEXT PRIMARY KEY,
+            sessionId TEXT,
+            studentId TEXT,
+            data TEXT
+          );
+          CREATE TABLE IF NOT EXISTS messages (
+            id TEXT PRIMARY KEY,
+            senderId TEXT,
+            receiverId TEXT,
+            data TEXT
+          );
+        `);
+
+        // Migration logic from JSON files
+        await this.migrateSkills();
+        await this.migrateJsonData();
+
+        console.log('Successfully initialized SQLite database!');
+      } catch (err) {
+        console.error('Failed to initialize SQLite database:', err);
+      }
     }
 
     // Seed Firestore asynchronously in the background if connected
     if (isFirebaseConnected) {
       this.initFirestore().catch(err => console.error('Failed to init Firestore:', err));
     }
+  }
+
+  async migrateSkills() {
+    try {
+      if (fs.existsSync(SKILLS_FILE)) {
+        const skillsData = JSON.parse(fs.readFileSync(SKILLS_FILE, 'utf8'));
+        if (Array.isArray(skillsData) && skillsData.length > 0) {
+          console.log(`Migrating ${skillsData.length} skills from JSON to SQLite...`);
+          const stmt = await this.sqliteDb.prepare('INSERT OR IGNORE INTO skills (name) VALUES (?)');
+          for (const skill of skillsData) {
+            await stmt.run(skill);
+          }
+          await stmt.finalize();
+          fs.renameSync(SKILLS_FILE, SKILLS_FILE + '.bak');
+        }
+      }
+
+      // Check if skills table is empty, seed defaults
+      const count = await this.sqliteDb.get('SELECT COUNT(*) as count FROM skills');
+      if (count.count === 0) {
+        const stmt = await this.sqliteDb.prepare('INSERT OR IGNORE INTO skills (name) VALUES (?)');
+        for (const skill of INITIAL_SKILLS) {
+          await stmt.run(skill);
+        }
+        await stmt.finalize();
+      }
+    } catch (err) {
+      console.error('Failed to migrate/seed skills in SQLite:', err);
+    }
+  }
+
+  async migrateJsonData() {
+    const migrate = async (filePath, insertFn) => {
+      if (fs.existsSync(filePath)) {
+        try {
+          const content = fs.readFileSync(filePath, 'utf8');
+          if (!content.trim() || content.trim() === '[]') {
+            fs.renameSync(filePath, filePath + '.bak');
+            return;
+          }
+          const list = JSON.parse(content);
+          if (Array.isArray(list) && list.length > 0) {
+            console.log(`Migrating ${list.length} records from ${path.basename(filePath)} to SQLite...`);
+            for (const item of list) {
+              await insertFn(item);
+            }
+            fs.renameSync(filePath, filePath + '.bak');
+          }
+        } catch (err) {
+          console.error(`Failed to migrate ${path.basename(filePath)}:`, err);
+        }
+      }
+    };
+
+    await migrate(USERS_FILE, async (user) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO users (id, email, data) VALUES (?, ?, ?)',
+        [user.id, user.email?.toLowerCase(), JSON.stringify(user)]
+      );
+    });
+
+    await migrate(SWAPS_FILE, async (req) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO swap_requests (id, data) VALUES (?, ?)',
+        [req.id, JSON.stringify(req)]
+      );
+    });
+
+    await migrate(REVIEWS_FILE, async (rev) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO reviews (id, reviewerId, mentorId, data) VALUES (?, ?, ?, ?)',
+        [rev.id, rev.reviewerId, rev.mentorId, JSON.stringify(rev)]
+      );
+    });
+
+    await migrate(SESSIONS_FILE, async (sess) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO sessions (id, data) VALUES (?, ?)',
+        [sess.id, JSON.stringify(sess)]
+      );
+    });
+
+    await migrate(BOOKINGS_FILE, async (book) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO bookings (id, sessionId, studentId, data) VALUES (?, ?, ?, ?)',
+        [book.id, book.sessionId, book.studentId, JSON.stringify(book)]
+      );
+    });
+
+    await migrate(MESSAGES_FILE, async (msg) => {
+      await this.sqliteDb.run(
+        'INSERT OR IGNORE INTO messages (id, senderId, receiverId, data) VALUES (?, ?, ?, ?)',
+        [msg.id, msg.senderId, msg.receiverId, JSON.stringify(msg)]
+      );
+    });
+  }
+
+  async getDb() {
+    await this.initPromise;
+    return this.sqliteDb;
   }
 
   async initFirestore() {
@@ -96,13 +217,11 @@ class Database {
         console.log('Seeding initial skills & users to Firebase Firestore...');
         const batch = firestoreDb.batch();
         
-        // Seed Skills
         for (const skill of INITIAL_SKILLS) {
           const ref = firestoreDb.collection('skills').doc(skill.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
           batch.set(ref, { name: skill });
         }
         
-        // Seed Users
         for (const user of INITIAL_USERS) {
           const ref = firestoreDb.collection('users').doc(user.id);
           batch.set(ref, user);
@@ -130,26 +249,20 @@ class Database {
     }
 
     try {
-      if (!fs.existsSync(SKILLS_FILE)) {
-        writeFileAtomic(SKILLS_FILE, INITIAL_SKILLS);
-      }
-      const data = fs.readFileSync(SKILLS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT name FROM skills');
+      return rows.map(r => r.name);
     } catch (err) {
-      console.error("Error reading skills from local file:", err);
+      console.error("Error reading skills from SQLite:", err);
       return INITIAL_SKILLS;
     }
   }
 
   async saveCustomSkill(skillName) {
     const skills = await this.getSkills();
-    // Case insensitive duplicate check
     if (skills.some(s => s.toLowerCase() === skillName.toLowerCase())) {
       return skills;
     }
-    
-    // Add new skill
-    skills.push(skillName);
     
     if (isFirebaseConnected) {
       try {
@@ -157,10 +270,16 @@ class Database {
       } catch (err) {
         console.error(`Error saving skill ${skillName} to Firestore:`, err);
       }
+    } else {
+      try {
+        const db = await this.getDb();
+        await db.run('INSERT INTO skills (name) VALUES (?)', [skillName]);
+      } catch (err) {
+        console.error(`Error saving skill ${skillName} to SQLite:`, err);
+      }
     }
 
-    writeFileAtomic(SKILLS_FILE, skills);
-    return skills;
+    return this.getSkills();
   }
 
   // --- USERS CRUD ---
@@ -177,13 +296,11 @@ class Database {
     }
 
     try {
-      if (!fs.existsSync(USERS_FILE)) {
-        writeFileAtomic(USERS_FILE, INITIAL_USERS);
-      }
-      const data = fs.readFileSync(USERS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM users');
+      return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading users from local file:", err);
+      console.error("Error reading users from SQLite:", err);
       return [];
     }
   }
@@ -198,8 +315,14 @@ class Database {
       }
     }
 
-    const users = await this.getUsers();
-    return users.find(u => u.id === id);
+    try {
+      const db = await this.getDb();
+      const row = await db.get('SELECT data FROM users WHERE id = ?', [id]);
+      return row ? JSON.parse(row.data) : null;
+    } catch (err) {
+      console.error(`Error reading user ${id} from SQLite:`, err);
+      return null;
+    }
   }
 
   async getUserByEmail(email) {
@@ -215,8 +338,14 @@ class Database {
       }
     }
 
-    const users = await this.getUsers();
-    return users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    try {
+      const db = await this.getDb();
+      const row = await db.get('SELECT data FROM users WHERE email = ?', [email.toLowerCase()]);
+      return row ? JSON.parse(row.data) : null;
+    } catch (err) {
+      console.error(`Error reading user ${email} from SQLite:`, err);
+      return null;
+    }
   }
 
   async saveUser(user) {
@@ -234,17 +363,19 @@ class Database {
       }
     }
 
-    const users = await this.getUsers();
-    const index = users.findIndex(u => u.id === user.id);
-
-    if (index !== -1) {
-      users[index] = { ...users[index], ...user };
-    } else {
-      users.push(user);
+    try {
+      const db = await this.getDb();
+      const dataStr = JSON.stringify(user);
+      await db.run(
+        `INSERT INTO users (id, email, data) VALUES (?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET email = excluded.email, data = excluded.data`,
+        [user.id, user.email, dataStr]
+      );
+      return user;
+    } catch (err) {
+      console.error(`Error saving user ${user.id} to SQLite:`, err);
+      return user;
     }
-
-    writeFileAtomic(USERS_FILE, users);
-    return user;
   }
 
   async deleteUser(id) {
@@ -257,10 +388,14 @@ class Database {
       }
     }
 
-    const users = await this.getUsers();
-    const filtered = users.filter(u => u.id !== id);
-    writeFileAtomic(USERS_FILE, filtered);
-    return true;
+    try {
+      const db = await this.getDb();
+      await db.run('DELETE FROM users WHERE id = ?', [id]);
+      return true;
+    } catch (err) {
+      console.error(`Error deleting user ${id} from SQLite:`, err);
+      return false;
+    }
   }
 
   // --- SWAP REQUESTS WORKFLOW ---
@@ -277,13 +412,12 @@ class Database {
     }
 
     try {
-      if (!fs.existsSync(SWAPS_FILE)) {
-        writeFileAtomic(SWAPS_FILE, []);
-      }
-      const data = fs.readFileSync(SWAPS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM swap_requests');
+      const list = rows.map(r => JSON.parse(r.data));
+      return list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } catch (err) {
-      console.error("Error reading swap requests from local file:", err);
+      console.error("Error reading swap requests from SQLite:", err);
       return [];
     }
   }
@@ -308,17 +442,18 @@ class Database {
       }
     }
 
-    const requests = await this.getSwapRequests();
-    const index = requests.findIndex(r => r.id === requestId);
-
-    if (index !== -1) {
-      requests[index] = { ...requests[index], ...newRequest };
-    } else {
-      requests.push(newRequest);
+    try {
+      const db = await this.getDb();
+      await db.run(
+        `INSERT INTO swap_requests (id, data) VALUES (?, ?)
+         ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
+        [requestId, JSON.stringify(newRequest)]
+      );
+      return newRequest;
+    } catch (err) {
+      console.error("Error saving swap request to SQLite:", err);
+      return newRequest;
     }
-
-    writeFileAtomic(SWAPS_FILE, requests);
-    return newRequest;
   }
 
   async updateSwapRequestStatus(id, status) {
@@ -336,173 +471,216 @@ class Database {
       }
     }
 
-    const requests = await this.getSwapRequests();
-    const index = requests.findIndex(r => r.id === id);
-    if (index === -1) {
-      throw new Error(`Swap request ${id} not found`);
+    try {
+      const db = await this.getDb();
+      const row = await db.get('SELECT data FROM swap_requests WHERE id = ?', [id]);
+      if (!row) {
+        throw new Error(`Swap request ${id} not found`);
+      }
+      const request = JSON.parse(row.data);
+      request.status = status;
+      request.updatedAt = new Date().toISOString();
+      await db.run('UPDATE swap_requests SET data = ? WHERE id = ?', [JSON.stringify(request), id]);
+      return request;
+    } catch (err) {
+      console.error(`Error updating swap request ${id} in SQLite:`, err);
+      throw err;
     }
-    requests[index].status = status;
-    requests[index].updatedAt = new Date().toISOString();
-    writeFileAtomic(SWAPS_FILE, requests);
-    return requests[index];
   }
 
   // --- REVIEWS & RATINGS METHODS ---
   async getReviews() {
     try {
-      if (!fs.existsSync(REVIEWS_FILE)) {
-        writeFileAtomic(REVIEWS_FILE, INITIAL_REVIEWS);
-      }
-      const data = fs.readFileSync(REVIEWS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM reviews');
+      return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading reviews from local file:", err);
+      console.error("Error reading reviews from SQLite:", err);
       return [];
     }
   }
 
   async saveReview(review) {
-    const reviews = await this.getReviews();
-    
-    // Check constraint: unique reviewer-mentor pair
-    const duplicate = reviews.find(r => r.reviewerId === review.reviewerId && r.mentorId === review.mentorId);
-    if (duplicate) {
-      throw new Error("You have already reviewed this mentor.");
+    try {
+      const db = await this.getDb();
+      const row = await db.get(
+        'SELECT id FROM reviews WHERE reviewerId = ? AND mentorId = ?',
+        [review.reviewerId, review.mentorId]
+      );
+      if (row) {
+        throw new Error("You have already reviewed this mentor.");
+      }
+
+      const reviewId = 'review-' + Math.floor(1000 + Math.random() * 9000);
+      const newReview = {
+        id: reviewId,
+        createdAt: new Date().toISOString(),
+        ...review
+      };
+
+      await db.run(
+        'INSERT INTO reviews (id, reviewerId, mentorId, data) VALUES (?, ?, ?, ?)',
+        [reviewId, review.reviewerId, review.mentorId, JSON.stringify(newReview)]
+      );
+      return newReview;
+    } catch (err) {
+      console.error("Error saving review in SQLite:", err);
+      throw err;
     }
-
-    const reviewId = 'review-' + Math.floor(1000 + Math.random() * 9000);
-    const newReview = {
-      id: reviewId,
-      createdAt: new Date().toISOString(),
-      ...review
-    };
-
-    reviews.push(newReview);
-    writeFileAtomic(REVIEWS_FILE, reviews);
-    return newReview;
   }
 
   // --- MENTOR SESSIONS METHODS ---
   async getSessions() {
     try {
-      if (!fs.existsSync(SESSIONS_FILE)) {
-        writeFileAtomic(SESSIONS_FILE, INITIAL_SESSIONS);
-      }
-      const data = fs.readFileSync(SESSIONS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM sessions');
+      return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading sessions from local file:", err);
+      console.error("Error reading sessions from SQLite:", err);
       return [];
     }
   }
 
   async saveSession(session) {
-    const sessions = await this.getSessions();
-    const sessionId = session.id || 'session-' + Math.floor(1000 + Math.random() * 9000);
-    const newSession = {
-      id: sessionId,
-      ...session
-    };
-
-    const index = sessions.findIndex(s => s.id === sessionId);
-    if (index !== -1) {
-      sessions[index] = newSession;
-    } else {
-      sessions.push(newSession);
+    try {
+      const db = await this.getDb();
+      const sessionId = session.id || 'session-' + Math.floor(1000 + Math.random() * 9000);
+      const newSession = {
+        id: sessionId,
+        ...session
+      };
+      await db.run(
+        `INSERT INTO sessions (id, data) VALUES (?, ?)
+         ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
+        [sessionId, JSON.stringify(newSession)]
+      );
+      return newSession;
+    } catch (err) {
+      console.error("Error saving session in SQLite:", err);
+      return session;
     }
-
-    writeFileAtomic(SESSIONS_FILE, sessions);
-    return newSession;
   }
 
   async deleteSession(id) {
-    const sessions = await this.getSessions();
-    const filtered = sessions.filter(s => s.id !== id);
-    writeFileAtomic(SESSIONS_FILE, filtered);
-    
-    // Clean up bookings for this session as well
-    const bookings = await this.getSessionBookings();
-    const remainingBookings = bookings.filter(b => b.sessionId !== id);
-    writeFileAtomic(BOOKINGS_FILE, remainingBookings);
-    return true;
+    try {
+      const db = await this.getDb();
+      await db.run('DELETE FROM sessions WHERE id = ?', [id]);
+      await db.run('DELETE FROM bookings WHERE sessionId = ?', [id]);
+      return true;
+    } catch (err) {
+      console.error(`Error deleting session ${id} in SQLite:`, err);
+      return false;
+    }
   }
 
   // --- SESSION BOOKINGS (RSVPs) ---
   async getSessionBookings() {
     try {
-      if (!fs.existsSync(BOOKINGS_FILE)) {
-        writeFileAtomic(BOOKINGS_FILE, INITIAL_BOOKINGS);
-      }
-      const data = fs.readFileSync(BOOKINGS_FILE, 'utf8');
-      return JSON.parse(data);
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM bookings');
+      return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading bookings from local file:", err);
+      console.error("Error reading bookings from SQLite:", err);
       return [];
     }
   }
 
   async saveSessionBooking(booking) {
-    const bookings = await this.getSessionBookings();
-    
-    // Check if student already booked this session
-    const duplicate = bookings.find(b => b.sessionId === booking.sessionId && b.studentId === booking.studentId);
-    if (duplicate) {
-      return duplicate;
+    try {
+      const db = await this.getDb();
+      const row = await db.get(
+        'SELECT data FROM bookings WHERE sessionId = ? AND studentId = ?',
+        [booking.sessionId, booking.studentId]
+      );
+      if (row) {
+        return JSON.parse(row.data);
+      }
+
+      const bookingId = 'booking-' + Math.floor(1000 + Math.random() * 9000);
+      const newBooking = {
+        id: bookingId,
+        bookedAt: new Date().toISOString(),
+        ...booking
+      };
+
+      await db.run(
+        'INSERT INTO bookings (id, sessionId, studentId, data) VALUES (?, ?, ?, ?)',
+        [bookingId, booking.sessionId, booking.studentId, JSON.stringify(newBooking)]
+      );
+      return newBooking;
+    } catch (err) {
+      console.error("Error saving session booking in SQLite:", err);
+      return booking;
     }
-
-    const bookingId = 'booking-' + Math.floor(1000 + Math.random() * 9000);
-    const newBooking = {
-      id: bookingId,
-      bookedAt: new Date().toISOString(),
-      ...booking
-    };
-
-    bookings.push(newBooking);
-    writeFileAtomic(BOOKINGS_FILE, bookings);
-    return newBooking;
   }
 
   async deleteSessionBooking(id) {
-    const bookings = await this.getSessionBookings();
-    const filtered = bookings.filter(b => b.id !== id);
-    writeFileAtomic(BOOKINGS_FILE, filtered);
-    return true;
+    try {
+      const db = await this.getDb();
+      await db.run('DELETE FROM bookings WHERE id = ?', [id]);
+      return true;
+    } catch (err) {
+      console.error(`Error deleting session booking ${id} in SQLite:`, err);
+      return false;
+    }
   }
 
   async deleteSessionBookingByUserAndSession(userId, sessionId) {
-    const bookings = await this.getSessionBookings();
-    const filtered = bookings.filter(b => !(b.studentId === userId && b.sessionId === sessionId));
-    writeFileAtomic(BOOKINGS_FILE, filtered);
-    return true;
+    try {
+      const db = await this.getDb();
+      await db.run('DELETE FROM bookings WHERE studentId = ? AND sessionId = ?', [userId, sessionId]);
+      return true;
+    } catch (err) {
+      console.error(`Error deleting booking for user ${userId} and session ${sessionId} in SQLite:`, err);
+      return false;
+    }
   }
 
   // --- MESSAGES ---
-
-  getAllMessages() {
+  async getAllMessages() {
     try {
-      const data = fs.readFileSync(MESSAGES_FILE, 'utf8');
-      return JSON.parse(data);
-    } catch {
+      const db = await this.getDb();
+      const rows = await db.all('SELECT data FROM messages');
+      return rows.map(r => JSON.parse(r.data));
+    } catch (err) {
+      console.error("Error reading all messages from SQLite:", err);
       return [];
     }
   }
 
   async getMessagesForUser(userId) {
-    const messages = this.getAllMessages();
-    return messages.filter(m => m.senderId === userId || m.receiverId === userId);
+    try {
+      const db = await this.getDb();
+      const rows = await db.all(
+        'SELECT data FROM messages WHERE senderId = ? OR receiverId = ?',
+        [userId, userId]
+      );
+      return rows.map(r => JSON.parse(r.data));
+    } catch (err) {
+      console.error(`Error reading messages for user ${userId} from SQLite:`, err);
+      return [];
+    }
   }
 
   async saveMessage(msg) {
-    const messages = this.getAllMessages();
-    const newMessage = {
-      id: 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-      timestamp: new Date().toISOString(),
-      read: false,
-      ...msg
-    };
-    messages.push(newMessage);
-    writeFileAtomic(MESSAGES_FILE, messages);
-    return newMessage;
+    try {
+      const db = await this.getDb();
+      const messageId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+      const newMessage = {
+        id: messageId,
+        timestamp: new Date().toISOString(),
+        read: false,
+        ...msg
+      };
+      await db.run(
+        'INSERT INTO messages (id, senderId, receiverId, data) VALUES (?, ?, ?, ?)',
+        [messageId, msg.senderId, msg.receiverId, JSON.stringify(newMessage)]
+      );
+      return newMessage;
+    } catch (err) {
+      console.error("Error saving message in SQLite:", err);
+      return msg;
+    }
   }
 }
 
