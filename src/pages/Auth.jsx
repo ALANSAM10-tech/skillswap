@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 import { ShieldAlert, CheckCircle, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -11,6 +11,7 @@ const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
 export default function Auth() {
   const { login, register, loginWithGoogle, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [isLoginTab, setIsLoginTab] = useState(true);
   const [error, setError] = useState('');
@@ -49,6 +50,30 @@ export default function Auth() {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  // Load Google draft user or error from external Google sign-in redirects
+  useEffect(() => {
+    if (location.state?.isNewGoogle && location.state?.userDraft) {
+      Promise.resolve().then(() => {
+        setIsLoginTab(false);
+        setIsGoogleOAuth(true);
+        setRegEmail(location.state.userDraft.email);
+        setFullName(location.state.userDraft.fullName);
+        setAvatar(location.state.userDraft.avatar || '✨');
+        setStep(1);
+        setSuccess('Google account verified! Please complete your academic details to onboard.');
+        setTimeout(() => setSuccess(''), 4000);
+      });
+      
+      // Clear the state so refreshing doesn't keep showing the message
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (location.state?.error) {
+      Promise.resolve().then(() => {
+        setError(location.state.error);
+      });
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   // Load Skills Taxonomy
   useEffect(() => {

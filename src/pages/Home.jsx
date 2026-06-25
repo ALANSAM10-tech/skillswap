@@ -7,10 +7,28 @@ import {
   Share2, Compass, Star, Lock
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loginWithGoogle } = useAuth();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const res = await loginWithGoogle({ credential: credentialResponse.credential });
+    if (res.success) {
+      if (res.isNew) {
+        navigate('/auth', { state: { isNewGoogle: true, userDraft: res.user } });
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/auth', { state: { error: res.error || 'Google sign in failed.' } });
+    }
+  };
+
+  const handleGoogleError = () => {
+    navigate('/auth', { state: { error: 'Google sign in failed. Please verify your internet connection or Google credentials.' } });
+  };
 
   // State for Match Simulator
   const [teachSkill, setTeachSkill] = useState('Python');
@@ -165,7 +183,7 @@ export default function Home() {
             SkillSwap is a secure peer-to-peer knowledge network exclusively for college students. Swap your strengths for new skills, coordinate meetings, and map your learning journey using AI roadmaps.
           </p>
 
-          <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
+          <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
             <button
               onClick={handleStart}
               className="btn btn-primary"
@@ -183,6 +201,19 @@ export default function Home() {
               Build AI Roadmap
             </button>
           </div>
+
+          {!user && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', marginBottom: '3.5rem' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>or swap instantly with</span>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="large"
+                shape="pill"
+              />
+            </div>
+          )}
         </div>
 
         {/* Stats Strip */}

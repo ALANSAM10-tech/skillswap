@@ -2,15 +2,33 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Users, Workflow, MessageSquare, MessageCircle, Settings, Menu, X, LogOut, RefreshCw, GraduationCap, Award } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { GoogleLogin } from '@react-oauth/google';
 import ThemeToggle from './ThemeToggle';
 import Avatar from './Avatar';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout, switchUser } = useAuth();
+  const { user, logout, switchUser, loginWithGoogle } = useAuth();
   const [allUsers, setAllUsers] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
   const navigate = useNavigate();
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const res = await loginWithGoogle({ credential: credentialResponse.credential });
+    if (res.success) {
+      if (res.isNew) {
+        navigate('/auth', { state: { isNewGoogle: true, userDraft: res.user } });
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      navigate('/auth', { state: { error: res.error || 'Google sign in failed.' } });
+    }
+  };
+
+  const handleGoogleError = () => {
+    navigate('/auth', { state: { error: 'Google sign in failed. Please verify your internet connection or Google credentials.' } });
+  };
 
   // Load all users for the Quick Profile Swapper dropdown
   useEffect(() => {
@@ -200,7 +218,15 @@ export default function Navbar() {
               </div>
             </>
           ) : (
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                theme="outline"
+                size="medium"
+                text="signin_with"
+                shape="pill"
+              />
               <NavLink to="/auth" className="btn btn-primary" style={{ padding: '0.5rem 1.25rem', borderRadius: '30px' }}>
                 Sign In
               </NavLink>
@@ -291,9 +317,21 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <NavLink to="/auth" className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={closeMobileMenu}>
-              Sign In
-            </NavLink>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  text="signin_with"
+                  shape="pill"
+                />
+              </div>
+              <NavLink to="/auth" className="btn btn-primary" style={{ justifyContent: 'center' }} onClick={closeMobileMenu}>
+                Sign In
+              </NavLink>
+            </div>
           )}
         </div>
       )}
