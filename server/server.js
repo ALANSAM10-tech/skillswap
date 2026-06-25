@@ -869,6 +869,11 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
+// --- HEALTH CHECK (used by uptime monitors & keep-alive) ---
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Serve the built React frontend for all non-API routes
 // This runs regardless of how the server was started (direct or imported)
 const DIST_PATH = path.join(__dirname, '../dist');
@@ -885,6 +890,22 @@ const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolv
 if (isMain) {
   app.listen(PORT, () => {
     console.log(`College Skill Swap Backend Server running on port ${PORT}`);
+
+    // --- KEEP-ALIVE: Self-ping every 14 minutes to prevent Render free tier cold starts ---
+    // Only runs in production so local dev is not affected.
+    if (process.env.NODE_ENV === 'production') {
+      const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+      setInterval(async () => {
+        try {
+          const response = await fetch(`${SELF_URL}/api/health`);
+          const data = await response.json();
+          console.log(`[keep-alive] ping ok at ${data.timestamp}`);
+        } catch (err) {
+          console.warn('[keep-alive] ping failed:', err.message);
+        }
+      }, 14 * 60 * 1000); // every 14 minutes
+      console.log(`[keep-alive] Self-ping scheduled every 14 minutes to ${SELF_URL}`);
+    }
   });
 }
 
