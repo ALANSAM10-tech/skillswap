@@ -17,10 +17,25 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
+  // Fetch with a 60-second timeout — prevents hanging on Render cold starts
+  const fetchWithTimeout = (url, options = {}, timeoutMs = 60000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+      .then(res => { clearTimeout(timer); return res; })
+      .catch(err => {
+        clearTimeout(timer);
+        if (err.name === 'AbortError') {
+          throw new Error('Server is waking up — please wait ~30 seconds and try again.');
+        }
+        throw err;
+      });
+  };
+
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/login', {
+      const res = await fetchWithTimeout('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -44,7 +59,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/register', {
+      const res = await fetchWithTimeout('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -68,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async (googleProfile) => {
     try {
       setLoading(true);
-      const res = await fetch('/api/auth/google', {
+      const res = await fetchWithTimeout('/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(googleProfile)

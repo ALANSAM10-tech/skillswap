@@ -7,6 +7,12 @@ import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 
 const AVATARS = ['🎓', '🎨', '✨', '📸', '⚙️', '🌍', '🎬', '📊', '🛠️', '💻', '💡', '✍️'];
 const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
+const FALLBACK_SKILLS = [
+  "Python", "Javascript", "React", "Node.js", "HTML/CSS", "SQL", "Git", "Java", "C++", 
+  "Figma", "Adobe Premiere", "Photoshop", "Photography", "Video Editing", "UI/UX Design", "Graphic Design", "Music Production",
+  "Calculus", "Linear Algebra", "Physics", "Chemistry", "Economics", "Statistics", "Spanish", "French", "Japanese",
+  "Public Speaking", "Resume Writing", "Interview Prep", "Technical Writing", "Product Management"
+];
 
 export default function Auth() {
   const { login, register, loginWithGoogle, user } = useAuth();
@@ -42,7 +48,7 @@ export default function Auth() {
   const [customSkillType, setCustomSkillType] = useState('teach'); // 'teach' or 'learn'
 
   // Predefined Skills Taxonomy from Backend
-  const [skillsTaxonomy, setSkillsTaxonomy] = useState([]);
+  const [skillsTaxonomy, setSkillsTaxonomy] = useState(FALLBACK_SKILLS);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -99,18 +105,24 @@ export default function Auth() {
   };
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com')) {
-      setError('Please use a .edu institutional email or a Gmail address.');
+    if (!regEmail || (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com'))) {
+      setError('Please use a .edu institutional email or a Gmail address (e.g. name@gmail.com).');
       setLoading(false);
       return;
     }
 
     if (!fullName || !major || !gradYear) {
       setError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
+    if (!isGoogleOAuth && (!regPassword || regPassword.length < 6)) {
+      setError('Password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
@@ -136,16 +148,20 @@ export default function Auth() {
       payload.password = regPassword;
     }
 
-    const res = await register(payload);
-    setLoading(false);
-
-    if (res.success) {
-      setSuccess('Account created successfully! Redirecting...');
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
-    } else {
-      setError(res.error || 'Registration failed.');
+    try {
+      const res = await register(payload);
+      if (res.success) {
+        setSuccess('Account created successfully! Redirecting...');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } else {
+        setError(res.error || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+      setError('Unexpected error: ' + (err.message || 'Please try again.'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,29 +202,46 @@ export default function Auth() {
   });
 
   // Add a skill to teach
-  const toggleTeachSkill = (skill) => {
-    const exists = teachSkills.find(s => s.name === skill);
+  const toggleTeachSkill = (skillName) => {
+    const exists = teachSkills.find(s => {
+      if (typeof s === 'string') return s === skillName;
+      return s?.name === skillName;
+    });
     if (exists) {
-      setTeachSkills(teachSkills.filter(s => s.name !== skill));
+      setTeachSkills(teachSkills.filter(s => {
+        if (typeof s === 'string') return s !== skillName;
+        return s?.name !== skillName;
+      }));
     } else {
-      setTeachSkills([...teachSkills, { name: skill, level: 'Intermediate' }]);
+      setTeachSkills([...teachSkills, { name: skillName, level: 'Intermediate' }]);
     }
   };
 
   // Update proficiency level for a teaching skill
   const handleLevelChange = (skillName, level) => {
-    setTeachSkills(teachSkills.map(s => 
-      s.name === skillName ? { ...s, level } : s
-    ));
+    setTeachSkills(teachSkills.map(s => {
+      const isStr = typeof s === 'string';
+      const name = isStr ? s : s?.name;
+      if (name === skillName) {
+        return { name, level };
+      }
+      return isStr ? { name: s, level: 'Intermediate' } : s;
+    }));
   };
 
   // Add a skill to learn
-  const toggleLearnSkill = (skill) => {
-    const exists = learnSkills.find(s => s.name === skill);
+  const toggleLearnSkill = (skillName) => {
+    const exists = learnSkills.find(s => {
+      if (typeof s === 'string') return s === skillName;
+      return s?.name === skillName;
+    });
     if (exists) {
-      setLearnSkills(learnSkills.filter(s => s.name !== skill));
+      setLearnSkills(learnSkills.filter(s => {
+        if (typeof s === 'string') return s !== skillName;
+        return s?.name !== skillName;
+      }));
     } else {
-      setLearnSkills([...learnSkills, { name: skill, level: 'Beginner' }]);
+      setLearnSkills([...learnSkills, { name: skillName, level: 'Beginner' }]);
     }
   };
 
@@ -602,7 +635,10 @@ export default function Auth() {
               <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '1rem', backgroundColor: 'var(--bg-tertiary)', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {skillsTaxonomy.map((skill) => {
-                    const selected = teachSkills.find(s => s.name === skill);
+                    const selected = teachSkills.some(s => {
+                      if (typeof s === 'string') return s === skill;
+                      return s?.name === skill;
+                    });
                     return (
                       <button
                         key={skill}
@@ -718,7 +754,10 @@ export default function Auth() {
               <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '1rem', backgroundColor: 'var(--bg-tertiary)', marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {skillsTaxonomy.map((skill) => {
-                    const selected = learnSkills.some(s => s.name === skill);
+                    const selected = learnSkills.some(s => {
+                      if (typeof s === 'string') return s === skill;
+                      return s?.name === skill;
+                    });
                     return (
                       <button
                         key={skill}
