@@ -643,7 +643,7 @@ export default function Mentorship() {
               <form onSubmit={handleCreateSession} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 
                 <div className="form-group">
-                  <label className="form-label">Session Title</label>
+                  <label className="form-label">Session Title <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <input
                     type="text"
                     required
@@ -655,7 +655,7 @@ export default function Mentorship() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Description / Objectives</label>
+                  <label className="form-label">Description / Objectives <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <textarea
                     className="form-control"
                     rows="3"
@@ -669,7 +669,7 @@ export default function Mentorship() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Session Type</label>
+                    <label className="form-label">Session Type <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <select
                       className="form-control"
                       value={sessionType}
@@ -681,7 +681,7 @@ export default function Mentorship() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Max Attendees</label>
+                    <label className="form-label">Max Attendees <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <input
                       type="number"
                       required
@@ -696,7 +696,7 @@ export default function Mentorship() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Session Date</label>
+                  <label className="form-label">Session Date <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <input
                     type="date"
                     required
@@ -708,7 +708,7 @@ export default function Mentorship() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="form-group">
-                    <label className="form-label">Start Time</label>
+                    <label className="form-label">Start Time <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <input
                       type="time"
                       required
@@ -719,7 +719,7 @@ export default function Mentorship() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">End Time</label>
+                    <label className="form-label">End Time <span style={{ color: 'var(--danger)' }}>*</span></label>
                     <input
                       type="time"
                       required

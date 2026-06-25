@@ -1122,7 +1122,7 @@ export default function Profile() {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: 0 }}>
-                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Feedback Comment</label>
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Feedback Comment <span style={{ color: 'var(--danger)' }}>*</span></label>
                       <textarea
                         className="form-control"
                         rows="3"
@@ -1174,7 +1174,7 @@ export default function Profile() {
 
             <form onSubmit={handleSendSwapRequest}>
               <div className="form-group">
-                <label className="form-label">Message</label>
+                <label className="form-label">Message <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <textarea
                   className="form-control"
                   rows="4"

@@ -294,7 +294,7 @@ export default function Settings() {
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="settings-split-row">
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">Full Name <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input
                   type="text"
                   required
@@ -317,7 +317,7 @@ export default function Settings() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px', gap: '1rem' }} className="settings-split-row">
               <div className="form-group">
-                <label className="form-label">Major</label>
+                <label className="form-label">Major <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input
                   type="text"
                   required
@@ -328,7 +328,7 @@ export default function Settings() {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Grad Year</label>
+                <label className="form-label">Grad Year <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <select
                   className="form-control"
                   value={gradYear}

@@ -322,7 +322,7 @@ export default function Auth() {
 
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="email-login">Email Address</label>
+              <label className="form-label" htmlFor="email-login">Email Address <span style={{ color: 'var(--danger)' }}>*</span></label>
               <input
                 id="email-login"
                 type="email"
@@ -422,7 +422,7 @@ export default function Auth() {
               )}
 
               <div className="form-group">
-                <label className="form-label" htmlFor="reg-name">Full Name</label>
+                <label className="form-label" htmlFor="reg-name">Full Name <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input
                   id="reg-name"
                   type="text"
@@ -435,7 +435,7 @@ export default function Auth() {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="reg-email">Campus Email (.edu)</label>
+                <label className="form-label" htmlFor="reg-email">Email Address (Gmail / .edu) <span style={{ color: 'var(--danger)' }}>*</span></label>
                 <input
                   id="reg-email"
                   type="email"
@@ -450,7 +450,7 @@ export default function Auth() {
 
               {!isGoogleOAuth && (
                 <div className="form-group">
-                  <label className="form-label" htmlFor="reg-password">Password</label>
+                  <label className="form-label" htmlFor="reg-password">Password <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <div style={{ position: 'relative' }}>
                     <input
                       id="reg-password"
@@ -475,7 +475,7 @@ export default function Auth() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: '1rem' }}>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="reg-major">Major</label>
+                  <label className="form-label" htmlFor="reg-major">Major <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <input
                     id="reg-major"
                     type="text"
@@ -487,7 +487,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label" htmlFor="reg-year">Grad Year</label>
+                  <label className="form-label" htmlFor="reg-year">Grad Year <span style={{ color: 'var(--danger)' }}>*</span></label>
                   <select
                     id="reg-year"
                     className="form-control"
