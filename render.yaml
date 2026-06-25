@@ -25,6 +25,6 @@ services:
       - key: FIREBASE_PRIVATE_KEY
         sync: false
       - key: VITE_API_URL
-        value: https://skillswap-etbp.onrender.com
+        sync: false
       - key: VITE_GOOGLE_CLIENT_ID
         sync: false
