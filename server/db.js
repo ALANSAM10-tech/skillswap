@@ -290,12 +290,23 @@ class Database {
   }
 
   // --- USERS CRUD ---
+  normalizeUser(u) {
+    if (!u) return u;
+    if (u.teachSkills) {
+      u.teachSkills = u.teachSkills.map(s => typeof s === 'string' ? { name: s, level: 'Intermediate' } : s);
+    }
+    if (u.learnSkills) {
+      u.learnSkills = u.learnSkills.map(s => typeof s === 'string' ? { name: s, level: 'Beginner' } : s);
+    }
+    return u;
+  }
+
   async getUsers() {
     if (isFirebaseConnected) {
       try {
         const snapshot = await firestoreDb.collection('users').get();
         const list = [];
-        snapshot.forEach(doc => list.push(doc.data()));
+        snapshot.forEach(doc => list.push(this.normalizeUser(doc.data())));
         return list;
       } catch (err) {
         console.error("Error reading users from Firestore:", err);
@@ -305,7 +316,7 @@ class Database {
     try {
       const db = await this.getDb();
       const rows = await db.all('SELECT data FROM users');
-      return rows.map(r => JSON.parse(r.data));
+      return rows.map(r => this.normalizeUser(JSON.parse(r.data)));
     } catch (err) {
       console.error("Error reading users from SQLite:", err);
       return [];
@@ -316,7 +327,7 @@ class Database {
     if (isFirebaseConnected) {
       try {
         const doc = await firestoreDb.collection('users').doc(id).get();
-        return doc.exists ? doc.data() : null;
+        return doc.exists ? this.normalizeUser(doc.data()) : null;
       } catch (err) {
         console.error(`Error reading user ${id} from Firestore:`, err);
       }
@@ -325,7 +336,7 @@ class Database {
     try {
       const db = await this.getDb();
       const row = await db.get('SELECT data FROM users WHERE id = ?', [id]);
-      return row ? JSON.parse(row.data) : null;
+      return row ? this.normalizeUser(JSON.parse(row.data)) : null;
     } catch (err) {
       console.error(`Error reading user ${id} from SQLite:`, err);
       return null;
@@ -337,7 +348,7 @@ class Database {
       try {
         const snapshot = await firestoreDb.collection('users').where('email', '==', email.toLowerCase()).limit(1).get();
         if (!snapshot.empty) {
-          return snapshot.docs[0].data();
+          return this.normalizeUser(snapshot.docs[0].data());
         }
         return null;
       } catch (err) {
@@ -348,7 +359,7 @@ class Database {
     try {
       const db = await this.getDb();
       const row = await db.get('SELECT data FROM users WHERE email = ?', [email.toLowerCase()]);
-      return row ? JSON.parse(row.data) : null;
+      return row ? this.normalizeUser(JSON.parse(row.data)) : null;
     } catch (err) {
       console.error(`Error reading user ${email} from SQLite:`, err);
       return null;
