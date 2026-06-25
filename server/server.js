@@ -869,17 +869,20 @@ app.post('/api/messages', async (req, res) => {
   }
 });
 
-// Only start the HTTP server when run directly (not when imported by Firebase Functions)
+// Serve the built React frontend for all non-API routes
+// This runs regardless of how the server was started (direct or imported)
+const DIST_PATH = path.join(__dirname, '../dist');
+if (fs.existsSync(DIST_PATH)) {
+  app.use(express.static(DIST_PATH));
+  // Catch-all: return index.html for any route not handled by the API
+  app.use((req, res) => {
+    res.sendFile(path.join(DIST_PATH, 'index.html'));
+  });
+}
+
+// Only bind to a port when run directly (not when imported by Firebase Functions)
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMain) {
-  // Serve static frontend in local production preview
-  const DIST_PATH = path.join(__dirname, '../dist');
-  if (fs.existsSync(DIST_PATH)) {
-    app.use(express.static(DIST_PATH));
-    app.get('*splat', (req, res) => {
-      res.sendFile(path.join(DIST_PATH, 'index.html'));
-    });
-  }
   app.listen(PORT, () => {
     console.log(`College Skill Swap Backend Server running on port ${PORT}`);
   });
