@@ -32,6 +32,15 @@ export const AuthProvider = ({ children }) => {
       });
   };
 
+  // Safely parse JSON — if server returns HTML (crash/404), shows a friendly error
+  const safeJson = async (res) => {
+    const ct = res.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      throw new Error(`Server error (${res.status}) — please try again in a moment.`);
+    }
+    return res.json();
+  };
+
   const login = async (email, password) => {
     try {
       setLoading(true);
@@ -40,10 +49,8 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Login failed');
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('skillswap_user', JSON.stringify(data.user));
@@ -64,10 +71,8 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Registration failed');
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('skillswap_user', JSON.stringify(data.user));
@@ -88,18 +93,14 @@ export const AuthProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(googleProfile)
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Google authentication failed');
-      }
-      
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Google authentication failed');
       if (!data.isNew) {
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem('skillswap_user', JSON.stringify(data.user));
         localStorage.setItem('skillswap_token', data.token);
       }
-      
       return { success: true, isNew: data.isNew, user: data.user, token: data.token };
     } catch (err) {
       return { success: false, error: err.message };
@@ -118,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (updatedData) => {
     if (!user) return { success: false, error: 'No authenticated user' };
     try {
-      const res = await fetch(`/api/users/${user.id}`, {
+      const res = await fetchWithTimeout(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -126,10 +127,8 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify(updatedData)
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Profile update failed');
-      }
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.message || 'Profile update failed');
       setUser(data.user);
       localStorage.setItem('skillswap_user', JSON.stringify(data.user));
       return { success: true };

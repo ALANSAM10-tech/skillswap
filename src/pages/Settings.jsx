@@ -6,6 +6,12 @@ import { Settings as SettingsIcon, Sun, Moon, CheckCircle, ShieldAlert } from 'l
 
 const AVATARS = ['🎓', '🎨', '✨', '📸', '⚙️', '🌍', '🎬', '📊', '🛠️', '💻', '💡', '✍️'];
 const PROFICIENCY_LEVELS = ['Beginner', 'Intermediate', 'Expert'];
+const FALLBACK_SKILLS = [
+  "Python", "Javascript", "React", "Node.js", "HTML/CSS", "SQL", "Git", "Java", "C++", 
+  "Figma", "Adobe Premiere", "Photoshop", "Photography", "Video Editing", "UI/UX Design", "Graphic Design", "Music Production",
+  "Calculus", "Linear Algebra", "Physics", "Chemistry", "Economics", "Statistics", "Spanish", "French", "Japanese",
+  "Public Speaking", "Resume Writing", "Interview Prep", "Technical Writing", "Product Management"
+];
 
 export default function Settings() {
   const { user, updateProfile } = useAuth();
@@ -35,7 +41,7 @@ export default function Settings() {
   // Skills State
   const [teachSkills, setTeachSkills] = useState(user?.teachSkills || []); // Array of { name, level }
   const [learnSkills, setLearnSkills] = useState(user?.learnSkills || []); // Array of { name, level }
-  const [skillsTaxonomy, setSkillsTaxonomy] = useState([]);
+  const [skillsTaxonomy, setSkillsTaxonomy] = useState(FALLBACK_SKILLS);
   const [customSkill, setCustomSkill] = useState('');
   const [customSkillType, setCustomSkillType] = useState('teach');
 
@@ -105,27 +111,44 @@ export default function Settings() {
     }
   };
 
-  const toggleTeachSkill = (skill) => {
-    const exists = teachSkills.find(s => s.name === skill);
+  const toggleTeachSkill = (skillName) => {
+    const exists = teachSkills.find(s => {
+      if (typeof s === 'string') return s === skillName;
+      return s?.name === skillName;
+    });
     if (exists) {
-      setTeachSkills(teachSkills.filter(s => s.name !== skill));
+      setTeachSkills(teachSkills.filter(s => {
+        if (typeof s === 'string') return s !== skillName;
+        return s?.name !== skillName;
+      }));
     } else {
-      setTeachSkills([...teachSkills, { name: skill, level: 'Intermediate' }]);
+      setTeachSkills([...teachSkills, { name: skillName, level: 'Intermediate' }]);
     }
   };
 
   const handleLevelChange = (skillName, level) => {
-    setTeachSkills(teachSkills.map(s => 
-      s.name === skillName ? { ...s, level } : s
-    ));
+    setTeachSkills(teachSkills.map(s => {
+      const isStr = typeof s === 'string';
+      const name = isStr ? s : s?.name;
+      if (name === skillName) {
+        return { name, level };
+      }
+      return isStr ? { name: s, level: 'Intermediate' } : s;
+    }));
   };
 
-  const toggleLearnSkill = (skill) => {
-    const exists = learnSkills.find(s => s.name === skill);
+  const toggleLearnSkill = (skillName) => {
+    const exists = learnSkills.find(s => {
+      if (typeof s === 'string') return s === skillName;
+      return s?.name === skillName;
+    });
     if (exists) {
-      setLearnSkills(learnSkills.filter(s => s.name !== skill));
+      setLearnSkills(learnSkills.filter(s => {
+        if (typeof s === 'string') return s !== skillName;
+        return s?.name !== skillName;
+      }));
     } else {
-      setLearnSkills([...learnSkills, { name: skill, level: 'Beginner' }]);
+      setLearnSkills([...learnSkills, { name: skillName, level: 'Beginner' }]);
     }
   };
 
@@ -438,7 +461,10 @@ export default function Settings() {
               <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '1rem', backgroundColor: 'var(--bg-tertiary)', marginBottom: '1rem', marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {skillsTaxonomy.map((skill) => {
-                    const selected = teachSkills.find(s => s.name === skill);
+                    const selected = teachSkills.some(s => {
+                      if (typeof s === 'string') return s === skill;
+                      return s?.name === skill;
+                    });
                     return (
                       <button
                         key={skill}
@@ -467,32 +493,36 @@ export default function Settings() {
               {teachSkills.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600' }}>Adjust teaching proficiencies:</span>
-                  {teachSkills.map(ts => (
-                    <div key={ts.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-tertiary)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{ts.name}</span>
-                      <div style={{ display: 'flex', gap: '0.25rem' }}>
-                        {PROFICIENCY_LEVELS.map(lvl => (
-                          <button
-                            key={lvl}
-                            type="button"
-                            onClick={() => handleLevelChange(ts.name, lvl)}
-                            style={{
-                              padding: '0.15rem 0.4rem',
-                              fontSize: '0.7rem',
-                              borderRadius: '4px',
-                              border: '1px solid ' + (ts.level === lvl ? 'var(--primary)' : 'var(--border-color)'),
-                              backgroundColor: ts.level === lvl ? 'var(--primary-glow)' : 'transparent',
-                              color: ts.level === lvl ? 'var(--primary)' : 'var(--text-muted)',
-                              cursor: 'pointer',
-                              fontWeight: '600'
-                            }}
-                          >
-                            {lvl}
-                          </button>
-                        ))}
+                  {teachSkills.map(ts => {
+                    const name = typeof ts === 'string' ? ts : ts?.name;
+                    const level = typeof ts === 'string' ? 'Intermediate' : (ts?.level || 'Intermediate');
+                    return (
+                      <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-tertiary)', padding: '0.4rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: '600' }}>{name}</span>
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                          {PROFICIENCY_LEVELS.map(lvl => (
+                            <button
+                              key={lvl}
+                              type="button"
+                              onClick={() => handleLevelChange(name, lvl)}
+                              style={{
+                                padding: '0.15rem 0.4rem',
+                                fontSize: '0.7rem',
+                                borderRadius: '4px',
+                                border: '1px solid ' + (level === lvl ? 'var(--primary)' : 'var(--border-color)'),
+                                backgroundColor: level === lvl ? 'var(--primary-glow)' : 'transparent',
+                                color: level === lvl ? 'var(--primary)' : 'var(--text-muted)',
+                                cursor: 'pointer',
+                                fontWeight: '600'
+                              }}
+                            >
+                              {lvl}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -503,7 +533,10 @@ export default function Settings() {
               <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)', padding: '1rem', backgroundColor: 'var(--bg-tertiary)', marginBottom: '1rem', marginTop: '0.5rem' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                   {skillsTaxonomy.map((skill) => {
-                    const selected = learnSkills.some(s => s.name === skill);
+                    const selected = learnSkills.some(s => {
+                      if (typeof s === 'string') return s === skill;
+                      return s?.name === skill;
+                    });
                     return (
                       <button
                         key={skill}
