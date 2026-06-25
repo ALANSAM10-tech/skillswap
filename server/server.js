@@ -52,7 +52,8 @@ app.use('/uploads', express.static(UPLOADS_DIR));
 const isValidEduEmail = (email) => {
   if (!email) return false;
   const lower = email.toLowerCase();
-  return lower.endsWith('.edu') || lower.endsWith('@gmail.com');
+  // Must end with .edu OR have @gmail.com exactly as the domain part
+  return lower.endsWith('.edu') || lower.split('@').pop() === 'gmail.com';
 };
 
 // --- AUTHENTICATION ROUTES ---
@@ -106,22 +107,33 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login student (email-only — no password required for sign in)
+// Login student (email + password)
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
 
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
 
     if (!isValidEduEmail(email)) {
-      return res.status(400).json({ success: false, message: 'Only institutional .edu email addresses are permitted.' });
+      return res.status(400).json({ success: false, message: 'Please use a .edu institutional email or a Gmail address.' });
     }
 
     const user = await db.getUserByEmail(email);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'No student profile found with this email. Please sign up first.' });
+      return res.status(404).json({ success: false, message: 'No account found with this email. Please sign up first.' });
+    }
+
+    // Verify password for non-Google accounts
+    if (user.passwordHash && !user.passwordHash.startsWith('google-')) {
+      if (!password) {
+        return res.status(400).json({ success: false, message: 'Password is required.' });
+      }
+      const inputHash = db.hashPassword(password.trim());
+      if (inputHash !== user.passwordHash) {
+        return res.status(401).json({ success: false, message: 'Incorrect password. Please try again.' });
+      }
     }
 
     res.json({ success: true, user, token: 'mock-jwt-' + user.id });

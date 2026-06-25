@@ -19,6 +19,8 @@ export default function Auth() {
 
   // Traditional Sign In State
   const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Registration Multi-step Form State
   const [step, setStep] = useState(1);
@@ -63,22 +65,22 @@ export default function Auth() {
     setError('');
     setLoading(true);
 
-    const res = await login(loginEmail.trim());
+    const res = await login(loginEmail.trim(), loginPassword);
     setLoading(false);
 
     if (res.success) {
       navigate('/dashboard');
     } else {
-      setError(res.error || 'No account found with this email. Please sign up.');
+      setError(res.error || 'Login failed. Please check your credentials.');
     }
   };
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com')) {
+    if (!regEmail.toLowerCase().endsWith('.edu') && regEmail.toLowerCase().split('@').pop() !== 'gmail.com') {
       setError('Please use a .edu institutional email or a Gmail address.');
       setLoading(false);
       return;
@@ -86,6 +88,12 @@ export default function Auth() {
 
     if (!fullName || !major || !gradYear) {
       setError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
+    if (!isGoogleOAuth && (!regPassword || regPassword.length < 6)) {
+      setError('Password must be at least 6 characters long.');
       setLoading(false);
       return;
     }
@@ -233,7 +241,7 @@ export default function Auth() {
         border: '1px solid var(--border-color)'
       }}>
         <button
-          onClick={() => { setIsLoginTab(true); setError(''); setSuccess(''); setIsGoogleOAuth(false); }}
+          onClick={() => { setIsLoginTab(true); setError(''); setSuccess(''); setIsGoogleOAuth(false); setLoginPassword(''); }}
           style={{
             flex: 1,
             padding: '0.65rem',
@@ -317,7 +325,7 @@ export default function Auth() {
         >
           <div style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Welcome Back</h2>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Enter your campus email to access your account instantly.</p>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Sign in with your campus email and password.</p>
           </div>
 
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -333,6 +341,29 @@ export default function Auth() {
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
               />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label" htmlFor="password-login">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="password-login"
+                  type={showLoginPassword ? 'text' : 'password'}
+                  required
+                  className="form-control"
+                  placeholder="Enter your password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  style={{ paddingRight: '2.5rem' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+                >
+                  {showLoginPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </div>
 
             <button
@@ -382,7 +413,7 @@ export default function Auth() {
             </span>
           </div>
 
-          {/* STEP 1: Core Profile */}
+          {/* Step 1 email validation (same correct check) */}
           {step === 1 && (
             <div>
               <div style={{ marginBottom: '1.5rem' }}>
@@ -547,7 +578,7 @@ export default function Auth() {
                     setError('Please complete all required profile fields.');
                     return;
                   }
-                  if (!regEmail.toLowerCase().endsWith('.edu') && !regEmail.toLowerCase().endsWith('@gmail.com')) {
+                  if (!regEmail.toLowerCase().endsWith('.edu') && regEmail.toLowerCase().split('@').pop() !== 'gmail.com') {
                     setError('Please use a .edu institutional email or a Gmail address.');
                     return;
                   }
@@ -757,7 +788,7 @@ export default function Auth() {
                   className="btn btn-teal"
                   style={{ flex: 1, borderRadius: '30px' }}
                 >
-                  {loading ? 'Creating...' : 'Finish SignUp'}
+                  {loading ? 'Creating...' : 'Finish Sign Up ✓'}
                 </button>
               </div>
             </div>
