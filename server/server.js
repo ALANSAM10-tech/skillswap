@@ -1,9 +1,16 @@
 /* global process */
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load env vars FIRST — before any other imports that use process.env
+const __filenameEnv = fileURLToPath(import.meta.url);
+const __dirnameEnv = path.dirname(__filenameEnv);
+dotenv.config({ path: path.join(__dirnameEnv, '.env') });
+
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { OAuth2Client } from 'google-auth-library';
 import db from './db.js';
 import { generateLearningPath } from './services/aiService.js';

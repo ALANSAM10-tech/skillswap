@@ -17,4 +17,10 @@ services:
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: FRONTEND_URL
-        sync: false          # Paste your Netlify URL here after deploying (e.g. https://skillswap.netlify.app)
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
