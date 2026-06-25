@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+// NOTE: sqlite3 and sqlite are NOT statically imported here.
+// They are loaded dynamically inside init() only when Firebase is not available.
+// This prevents the native sqlite3 binary from crashing on environments
+// that have an incompatible glibc version (e.g. Render's Linux runtime).
 import { firestoreDb, isFirebaseConnected } from './firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,9 +50,14 @@ class Database {
   }
 
   async init() {
-    // If not using Firebase, initialize SQLite
+    // If not using Firebase, initialize SQLite via dynamic import
+    // (avoids loading the native binary on environments where it's incompatible)
     if (!isFirebaseConnected) {
       try {
+        const sqlite3Mod = await import('sqlite3');
+        const { open } = await import('sqlite');
+        const sqlite3 = sqlite3Mod.default;
+
         this.sqliteDb = await open({
           filename: path.join(DATA_DIR, 'database.sqlite'),
           driver: sqlite3.Database
@@ -490,78 +497,116 @@ class Database {
 
   // --- REVIEWS & RATINGS METHODS ---
   async getReviews() {
+    if (isFirebaseConnected) {
+      try {
+        const snapshot = await firestoreDb.collection('reviews').get();
+        const list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        return list;
+      } catch (err) {
+        console.error('Error reading reviews from Firestore:', err);
+        return [];
+      }
+    }
     try {
       const db = await this.getDb();
       const rows = await db.all('SELECT data FROM reviews');
       return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading reviews from SQLite:", err);
+      console.error('Error reading reviews from SQLite:', err);
       return [];
     }
   }
 
   async saveReview(review) {
+    const reviewId = 'review-' + Math.floor(1000 + Math.random() * 9000);
+    const newReview = { id: reviewId, createdAt: new Date().toISOString(), ...review };
+
+    if (isFirebaseConnected) {
+      try {
+        const existing = await firestoreDb.collection('reviews')
+          .where('reviewerId', '==', review.reviewerId)
+          .where('mentorId', '==', review.mentorId).limit(1).get();
+        if (!existing.empty) throw new Error('You have already reviewed this mentor.');
+        await firestoreDb.collection('reviews').doc(reviewId).set(newReview);
+        return newReview;
+      } catch (err) {
+        console.error('Error saving review to Firestore:', err);
+        throw err;
+      }
+    }
     try {
       const db = await this.getDb();
-      const row = await db.get(
-        'SELECT id FROM reviews WHERE reviewerId = ? AND mentorId = ?',
-        [review.reviewerId, review.mentorId]
-      );
-      if (row) {
-        throw new Error("You have already reviewed this mentor.");
-      }
-
-      const reviewId = 'review-' + Math.floor(1000 + Math.random() * 9000);
-      const newReview = {
-        id: reviewId,
-        createdAt: new Date().toISOString(),
-        ...review
-      };
-
-      await db.run(
-        'INSERT INTO reviews (id, reviewerId, mentorId, data) VALUES (?, ?, ?, ?)',
-        [reviewId, review.reviewerId, review.mentorId, JSON.stringify(newReview)]
-      );
+      const row = await db.get('SELECT id FROM reviews WHERE reviewerId = ? AND mentorId = ?', [review.reviewerId, review.mentorId]);
+      if (row) throw new Error('You have already reviewed this mentor.');
+      await db.run('INSERT INTO reviews (id, reviewerId, mentorId, data) VALUES (?, ?, ?, ?)', [reviewId, review.reviewerId, review.mentorId, JSON.stringify(newReview)]);
       return newReview;
     } catch (err) {
-      console.error("Error saving review in SQLite:", err);
+      console.error('Error saving review in SQLite:', err);
       throw err;
     }
   }
 
   // --- MENTOR SESSIONS METHODS ---
   async getSessions() {
+    if (isFirebaseConnected) {
+      try {
+        const snapshot = await firestoreDb.collection('sessions').get();
+        const list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        return list;
+      } catch (err) {
+        console.error('Error reading sessions from Firestore:', err);
+        return [];
+      }
+    }
     try {
       const db = await this.getDb();
       const rows = await db.all('SELECT data FROM sessions');
       return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading sessions from SQLite:", err);
+      console.error('Error reading sessions from SQLite:', err);
       return [];
     }
   }
 
   async saveSession(session) {
+    const sessionId = session.id || 'session-' + Math.floor(1000 + Math.random() * 9000);
+    const newSession = { id: sessionId, ...session };
+
+    if (isFirebaseConnected) {
+      try {
+        await firestoreDb.collection('sessions').doc(sessionId).set(newSession, { merge: true });
+        return newSession;
+      } catch (err) {
+        console.error('Error saving session to Firestore:', err);
+        return session;
+      }
+    }
     try {
       const db = await this.getDb();
-      const sessionId = session.id || 'session-' + Math.floor(1000 + Math.random() * 9000);
-      const newSession = {
-        id: sessionId,
-        ...session
-      };
-      await db.run(
-        `INSERT INTO sessions (id, data) VALUES (?, ?)
-         ON CONFLICT(id) DO UPDATE SET data = excluded.data`,
-        [sessionId, JSON.stringify(newSession)]
-      );
+      await db.run(`INSERT INTO sessions (id, data) VALUES (?, ?) ON CONFLICT(id) DO UPDATE SET data = excluded.data`, [sessionId, JSON.stringify(newSession)]);
       return newSession;
     } catch (err) {
-      console.error("Error saving session in SQLite:", err);
+      console.error('Error saving session in SQLite:', err);
       return session;
     }
   }
 
   async deleteSession(id) {
+    if (isFirebaseConnected) {
+      try {
+        await firestoreDb.collection('sessions').doc(id).delete();
+        const bookingsSnap = await firestoreDb.collection('bookings').where('sessionId', '==', id).get();
+        const batch = firestoreDb.batch();
+        bookingsSnap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        return true;
+      } catch (err) {
+        console.error(`Error deleting session ${id} from Firestore:`, err);
+        return false;
+      }
+    }
     try {
       const db = await this.getDb();
       await db.run('DELETE FROM sessions WHERE id = ?', [id]);
@@ -575,46 +620,67 @@ class Database {
 
   // --- SESSION BOOKINGS (RSVPs) ---
   async getSessionBookings() {
+    if (isFirebaseConnected) {
+      try {
+        const snapshot = await firestoreDb.collection('bookings').get();
+        const list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        return list;
+      } catch (err) {
+        console.error('Error reading bookings from Firestore:', err);
+        return [];
+      }
+    }
     try {
       const db = await this.getDb();
       const rows = await db.all('SELECT data FROM bookings');
       return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading bookings from SQLite:", err);
+      console.error('Error reading bookings from SQLite:', err);
       return [];
     }
   }
 
   async saveSessionBooking(booking) {
+    if (isFirebaseConnected) {
+      try {
+        const existing = await firestoreDb.collection('bookings')
+          .where('sessionId', '==', booking.sessionId)
+          .where('studentId', '==', booking.studentId).limit(1).get();
+        if (!existing.empty) return existing.docs[0].data();
+        const bookingId = 'booking-' + Math.floor(1000 + Math.random() * 9000);
+        const newBooking = { id: bookingId, bookedAt: new Date().toISOString(), ...booking };
+        await firestoreDb.collection('bookings').doc(bookingId).set(newBooking);
+        return newBooking;
+      } catch (err) {
+        console.error('Error saving session booking to Firestore:', err);
+        return booking;
+      }
+    }
     try {
       const db = await this.getDb();
-      const row = await db.get(
-        'SELECT data FROM bookings WHERE sessionId = ? AND studentId = ?',
-        [booking.sessionId, booking.studentId]
-      );
-      if (row) {
-        return JSON.parse(row.data);
-      }
-
+      const row = await db.get('SELECT data FROM bookings WHERE sessionId = ? AND studentId = ?', [booking.sessionId, booking.studentId]);
+      if (row) return JSON.parse(row.data);
       const bookingId = 'booking-' + Math.floor(1000 + Math.random() * 9000);
-      const newBooking = {
-        id: bookingId,
-        bookedAt: new Date().toISOString(),
-        ...booking
-      };
-
-      await db.run(
-        'INSERT INTO bookings (id, sessionId, studentId, data) VALUES (?, ?, ?, ?)',
-        [bookingId, booking.sessionId, booking.studentId, JSON.stringify(newBooking)]
-      );
+      const newBooking = { id: bookingId, bookedAt: new Date().toISOString(), ...booking };
+      await db.run('INSERT INTO bookings (id, sessionId, studentId, data) VALUES (?, ?, ?, ?)', [bookingId, booking.sessionId, booking.studentId, JSON.stringify(newBooking)]);
       return newBooking;
     } catch (err) {
-      console.error("Error saving session booking in SQLite:", err);
+      console.error('Error saving session booking in SQLite:', err);
       return booking;
     }
   }
 
   async deleteSessionBooking(id) {
+    if (isFirebaseConnected) {
+      try {
+        await firestoreDb.collection('bookings').doc(id).delete();
+        return true;
+      } catch (err) {
+        console.error(`Error deleting booking ${id} from Firestore:`, err);
+        return false;
+      }
+    }
     try {
       const db = await this.getDb();
       await db.run('DELETE FROM bookings WHERE id = ?', [id]);
@@ -626,35 +692,72 @@ class Database {
   }
 
   async deleteSessionBookingByUserAndSession(userId, sessionId) {
+    if (isFirebaseConnected) {
+      try {
+        const snapshot = await firestoreDb.collection('bookings')
+          .where('studentId', '==', userId)
+          .where('sessionId', '==', sessionId).get();
+        const batch = firestoreDb.batch();
+        snapshot.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        return true;
+      } catch (err) {
+        console.error(`Error deleting booking for user ${userId} from Firestore:`, err);
+        return false;
+      }
+    }
     try {
       const db = await this.getDb();
       await db.run('DELETE FROM bookings WHERE studentId = ? AND sessionId = ?', [userId, sessionId]);
       return true;
     } catch (err) {
-      console.error(`Error deleting booking for user ${userId} and session ${sessionId} in SQLite:`, err);
+      console.error(`Error deleting booking for user ${userId} in SQLite:`, err);
       return false;
     }
   }
 
   // --- MESSAGES ---
   async getAllMessages() {
+    if (isFirebaseConnected) {
+      try {
+        const snapshot = await firestoreDb.collection('messages').get();
+        const list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        return list;
+      } catch (err) {
+        console.error('Error reading all messages from Firestore:', err);
+        return [];
+      }
+    }
     try {
       const db = await this.getDb();
       const rows = await db.all('SELECT data FROM messages');
       return rows.map(r => JSON.parse(r.data));
     } catch (err) {
-      console.error("Error reading all messages from SQLite:", err);
+      console.error('Error reading all messages from SQLite:', err);
       return [];
     }
   }
 
   async getMessagesForUser(userId) {
+    if (isFirebaseConnected) {
+      try {
+        const [sentSnap, recvSnap] = await Promise.all([
+          firestoreDb.collection('messages').where('senderId', '==', userId).get(),
+          firestoreDb.collection('messages').where('receiverId', '==', userId).get()
+        ]);
+        const msgs = {};
+        sentSnap.forEach(doc => { msgs[doc.id] = doc.data(); });
+        recvSnap.forEach(doc => { msgs[doc.id] = doc.data(); });
+        return Object.values(msgs).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      } catch (err) {
+        console.error(`Error reading messages for user ${userId} from Firestore:`, err);
+        return [];
+      }
+    }
     try {
       const db = await this.getDb();
-      const rows = await db.all(
-        'SELECT data FROM messages WHERE senderId = ? OR receiverId = ?',
-        [userId, userId]
-      );
+      const rows = await db.all('SELECT data FROM messages WHERE senderId = ? OR receiverId = ?', [userId, userId]);
       return rows.map(r => JSON.parse(r.data));
     } catch (err) {
       console.error(`Error reading messages for user ${userId} from SQLite:`, err);
@@ -663,22 +766,24 @@ class Database {
   }
 
   async saveMessage(msg) {
+    const messageId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+    const newMessage = { id: messageId, timestamp: new Date().toISOString(), read: false, ...msg };
+
+    if (isFirebaseConnected) {
+      try {
+        await firestoreDb.collection('messages').doc(messageId).set(newMessage);
+        return newMessage;
+      } catch (err) {
+        console.error('Error saving message to Firestore:', err);
+        return msg;
+      }
+    }
     try {
       const db = await this.getDb();
-      const messageId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
-      const newMessage = {
-        id: messageId,
-        timestamp: new Date().toISOString(),
-        read: false,
-        ...msg
-      };
-      await db.run(
-        'INSERT INTO messages (id, senderId, receiverId, data) VALUES (?, ?, ?, ?)',
-        [messageId, msg.senderId, msg.receiverId, JSON.stringify(newMessage)]
-      );
+      await db.run('INSERT INTO messages (id, senderId, receiverId, data) VALUES (?, ?, ?, ?)', [messageId, msg.senderId, msg.receiverId, JSON.stringify(newMessage)]);
       return newMessage;
     } catch (err) {
-      console.error("Error saving message in SQLite:", err);
+      console.error('Error saving message in SQLite:', err);
       return msg;
     }
   }
